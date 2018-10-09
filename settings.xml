@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+	<localRepository>D:\apache-maven\localRepo</localRepository>
+	<servers>
+		<!-- 私服用户配置 -->
+		<server>
+			<id>personal</id>
+			<username>67b56e1fd43f41378b2f8789cac9839a_cd39b6d696a14560a4142365fadf077c</username>
+			<password>9oM-1Nb=3k</password>
+		</server>
+		<server>
+			<id>snapshots</id>
+			<username>67b56e1fd43f41378b2f8789cac9839a_cd39b6d696a14560a4142365fadf077c</username>
+			<password>9oM-1Nb=3k</password>
+		</server>
+	</servers>
+	<mirrors>
+		<mirror>
+			<id>apache-mirror</id>
+			<mirrorOf>central</mirrorOf>
+			<url>http://repo.maven.apache.org/maven2/</url>
+		</mirror>
+	</mirrors>
+
+	<profiles>
+		<profile>
+			<id>turmeric</id>
+			<repositories>
+				<repository>
+					<id>personal</id>
+					<name>personal private nexus</name>
+
+					<url>https://devrepo-cn-south-1.devcloud.huaweicloud.com/01/nexus/content/repositories/67b56e1fd43f41378b2f8789cac9839a_1_0/</url>
+					<releases>
+						<enabled>true</enabled>
+						<checksumPolicy>ignore</checksumPolicy>
+					</releases>
+				</repository>
+
+			</repositories>
+			<pluginRepositories>
+				<pluginRepository>
+					<id>personal</id>
+					<name>personal private nexus</name>
+					<url>https://devrepo-cn-south-1.devcloud.huaweicloud.com/01/nexus/content/repositories/67b56e1fd43f41378b2f8789cac9839a_1_0/</url>
+					<releases>
+						<enabled>true</enabled>
+						<checksumPolicy>ignore</checksumPolicy>
+					</releases>
+				</pluginRepository>
+
+			</pluginRepositories>
+		</profile>
+
+	</profiles>
+
+	<activeProfiles>
+		<activeProfile>turmeric</activeProfile>
+	</activeProfiles>
+</settings>

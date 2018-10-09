@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<mapping table="testTable">
+	<index>
+		<field name="sku" column="f:s"/>
+		<field name="name" column="f:n"/>
+		<field name="cat" column="f:c"/>
+	</index>
+	<non-index>
+		<field name="manu_exact" column="f:m"/>
+	</non-index>
+</mapping>

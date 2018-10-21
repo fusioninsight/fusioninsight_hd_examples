@@ -29,9 +29,9 @@ public class ADemoForDoc {
   
   static {
       //日志配置文件
-      PropertyConfigurator.configure(BasicOperation.class.getClassLoader().getResource("conf/log4j.properties").getPath());
+      PropertyConfigurator.configure(ADemoForDoc.class.getClassLoader().getResource("conf/log4j.properties").getPath());
   }
-  private final static Log LOG = LogFactory.getLog(BasicOperation.class.getName());
+  private final static Log LOG = LogFactory.getLog(ADemoForDoc.class.getName());
     
   private static void close(Closeable stream) throws IOException
   {

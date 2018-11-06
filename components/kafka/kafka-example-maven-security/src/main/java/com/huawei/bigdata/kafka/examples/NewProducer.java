@@ -231,7 +231,7 @@ public class NewProducer extends Thread
 
         // 是否使用异步发送模式
         final boolean asyncEnable = false;
-        NewProducer producerThread = new NewProducer(KafkaProperties.topic, asyncEnable);
+        NewProducer producerThread = new NewProducer("test0001", asyncEnable);
         producerThread.start();
     }
 }

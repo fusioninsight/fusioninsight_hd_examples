@@ -11,6 +11,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	  <maven.compiler.source>1.8</maven.compiler.source>
+	  <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 
   <dependencies>
@@ -23,12 +25,12 @@
     	<groupId>org.apache.hadoop</groupId>
     	<artifactId>hadoop-common</artifactId>
     </dependency>
-    <dependency>
-    	<groupId>jdk.tools</groupId>
-    	<artifactId>jdk.tools</artifactId>
-    	<scope>system</scope>
-    	<systemPath>${JAVA_HOME}/lib/tools.jar</systemPath>
-    </dependency>
+    <!--<dependency>-->
+    	<!--<groupId>jdk.tools</groupId>-->
+    	<!--<artifactId>jdk.tools</artifactId>-->
+    	<!--<scope>system</scope>-->
+    	<!--<systemPath>${JAVA_HOME}/lib/tools.jar</systemPath>-->
+    <!--</dependency>-->
     <dependency>
     	<groupId>org.apache.hbase</groupId>
     	<artifactId>hbase-common</artifactId>

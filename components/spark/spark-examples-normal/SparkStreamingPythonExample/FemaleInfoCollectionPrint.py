@@ -30,7 +30,8 @@ if __name__ == "__main__":
     # 通过brokers和topics直接创建kafka stream
     # 1.接收Kafka中数据，生成相应DStream
     lines = kafka.KafkaUtils.createDirectStream(ssc, topics, kafkaParams).map(lambda r:r[1])
-    # 2.获取每一个行的字段属性
+    
+	# 2.获取每一个行的字段属性
     records = lines.map(lambda line: line.split(",")).map(lambda elems: (elems[0], elems[1], int(elems[2])))
 
     # 3.筛选女性网民上网时间数据信息

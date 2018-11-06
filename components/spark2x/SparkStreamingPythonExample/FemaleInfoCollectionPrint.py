@@ -15,7 +15,7 @@ if __name__ == "__main__":
     topics = sys.argv[3]
     brokers = sys.argv[4]
 
-    # 初始化SparkSession
+    # 初始化SparkContext
     conf = SparkConf().setAppName("DataSightStreamingExample")
     sc = SparkContext(conf = conf)
     ssc = StreamingContext(sc, int(batchTime))

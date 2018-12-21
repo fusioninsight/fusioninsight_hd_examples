@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<configuration>
+    <property>
+        <name>user.client.mapred.input</name>
+        <value>/zwl/input/</value>
+    </property>
+    <property>
+        <name>glodUser.client.mapred.output</name>
+        <value>/zwl/glodoutput/</value>
+    </property>
+    <property>
+        <name>glodUser.client.mapred.output.result</name>
+        <value>/zwl/glodresult</value>
+    </property>
+    <property>
+        <name>promoteUser.client.mapred.output</name>
+        <value>/zwl/promoteoutput/</value>
+    </property>
+    <property>
+        <name>username.client.mapred.output</name>
+        <value>/zwl/promoteOutput/</value>
+    </property>
+    <property>
+        <name>username.client.filelist.conf</name>
+        <value>text.txt,browsingTable1.txt</value>
+    </property>
+    <property>
+        <name>mapreduce.app-submission.cross-platform</name>
+        <value>true</value>
+    </property>
+</configuration>

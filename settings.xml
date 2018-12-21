@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
@@ -56,7 +56,18 @@
 		</profile>
 
 	</profiles>
-
+	<proxies>
+		<proxy>
+			<id>optional</id>
+			<active>true</active>
+			<protocol>http</protocol>
+			<username>账号</username>
+			<password>密码</password>
+			<host>proxy.huawei.com</host>
+			<port>8080</port>
+			<nonProxyHosts>local.host|127.0.0.1|*.huawei.com|100.126.29.18|100.112.77.54</nonProxyHosts>
+		</proxy>
+	</proxies>
 	<activeProfiles>
 		<activeProfile>turmeric</activeProfile>
 	</activeProfiles>

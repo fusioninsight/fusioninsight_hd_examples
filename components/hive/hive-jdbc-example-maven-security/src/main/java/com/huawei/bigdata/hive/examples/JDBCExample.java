@@ -85,7 +85,7 @@ public class JDBCExample
         serviceDiscoveryMode = clientInfo.getProperty("serviceDiscoveryMode");
         principal = clientInfo.getProperty("principal");
         // 设置新建用户的USER_NAME，其中"xxx"指代之前创建的用户名，例如创建的用户为user，则USER_NAME为user
-        USER_NAME = "test001";
+        USER_NAME = "panel";
 
         if ("KERBEROS".equalsIgnoreCase(auth))
         {
@@ -175,10 +175,13 @@ public class JDBCExample
 
     public static void execDDL(Connection connection, String sql) throws SQLException
     {
+        //用来存储SQL语句，并使用此对象可以多次有效的执行SQL语句
         PreparedStatement statement = null;
         try
         {
+            //创建PreparedStatement用于将参数化SQL语句发送到数据库的对象。
             statement = connection.prepareStatement(sql);
+            //在此PreparedStatement对象中执行SQL语句，该语句可以是任何类型的SQL语句。
             statement.execute();
         }
         finally
@@ -200,13 +203,17 @@ public class JDBCExample
         {
             // 执行HQL
             statement = connection.prepareStatement(sql);
+            //在此PreparedStatement对象中执行SQL查询并返回ResultSet查询生成的对象
             resultSet = statement.executeQuery();
 
             // 输出查询的列名到控制台
+            //getMetData 检索此ResultSet对象列的数量，类型和属性。
             resultMetaData = resultSet.getMetaData();
+            //getColumnCount():返回此ResultSet对象中的列数。
             int columnCount = resultMetaData.getColumnCount();
             for (int i = 1; i <= columnCount; i++)
             {
+                //获取指定列的建议标题，以便在打印输出和显示中使用。
                 System.out.print(resultMetaData.getColumnLabel(i) + '\t');
             }
             System.out.println();

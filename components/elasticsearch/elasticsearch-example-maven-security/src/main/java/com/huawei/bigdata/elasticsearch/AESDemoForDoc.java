@@ -33,7 +33,21 @@ import java.util.concurrent.ThreadLocalRandom;
  * 批量写入数据
  * 查询文档索引信息
  * 删除索引
+ *
+ *
+ * es-example.properties内容：请根据自己的情况修改下面的内容
+    EsServerHost=187.7.60.150:24148,187.7.60.223:24148,187.7.60.104:24148
+    MaxRetryTimeoutMillis=300000
+    ConnectTimeout=5000
+    SocketTimeout=60000
+    isSecureMode=true
+    index=huawei
+    type=doc
+    id =1
+    shardNum=3
+    replicaNum=1
  */
+
 public class AESDemoForDoc {
     private static final Logger LOG = LoggerFactory.getLogger(AESDemoForDoc.class);
     private static String isSecureMode;
@@ -67,7 +81,9 @@ public class AESDemoForDoc {
         } catch (Exception e) {
             throw new Exception("Failed to load properties file : " + path);
         }
-        //在es-example.properties中必须为ip1：port1，ip2：port2，ip3：port3 ....
+        //“esServerHost”为已安装Elasticsearch集群中任意节点 IP与该IP节点上已安装的任意Elasticsearch实例的HTTP端口组合的列表，
+        // 形如“ip1：port1，ip2:port2,ip3:port3......”。
+        // 该端口值可以通过以下方式获取：FusionInsight Manager界面点击“服务管理 > Elasticsearch > 服务配置”，
         esServerHost = properties.getProperty("EsServerHost");
         MaxRetryTimeoutMillis = Integer.valueOf(properties.getProperty("MaxRetryTimeoutMillis"));
         ConnectTimeout = Integer.valueOf(properties.getProperty("ConnectTimeout"));
@@ -285,6 +301,10 @@ public class AESDemoForDoc {
             entity2.setContentEncoding("UTF-8");
             Response rsp5 = null;
             try {
+                //批量导入数据，使用路径使用 /_bulk
+                //整个批量请求都需要由接收到请求的节点加载到内存中，因此该请求越大，其他请求所能获得的内存就越少。
+                //批量请求的大小有一个最佳值，大于这个值，性能将不再提升，甚至会下降。它完全取决于硬件、文档的大小和复杂度、索引和搜索的负载的整体情况。
+                //一个好的办法是开始时将 1,000 到 5,000 个文档作为一个批次, 如果你的文档非常大，那么就减少批量的文档个数。一个好的批量大小在开始处理后所占用的物理大小约为 5-15 MB。
                 rsp5 = restClient.performRequest("PUT", "/_bulk" ,params ,entity2);
                 if(HttpStatus.SC_OK == rsp5.getStatusLine().getStatusCode()) {
                     LOG.info("Bulk successful.");

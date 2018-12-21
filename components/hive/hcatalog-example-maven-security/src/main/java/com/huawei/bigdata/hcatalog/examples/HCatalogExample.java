@@ -50,6 +50,7 @@ import org.apache.hive.hcatalog.mapreduce.OutputJobInfo;
  *         $HCAT_HOME/lib/slf4j-api-1.7.5.jar
  * 
  * 提交任务：
+ *利用beeline,进入客户端。
  *         yarn --config $HADOOP_HOME/etc/hadoop jar jar <path_to_jar> <main_class> -libjars $LIB_JARS t1 t2   
  * 
  * 参考资料：

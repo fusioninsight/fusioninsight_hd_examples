@@ -7,6 +7,7 @@ import org.apache.spark.serializer.KryoRegistrator;
  */
 public class MyRegistrator implements KryoRegistrator
 {
+    //反序列化使用
     public void registerClasses(com.esotericsoftware.kryo.Kryo kryo)
     {
         kryo.register(org.apache.hadoop.hbase.io.ImmutableBytesWritable.class);

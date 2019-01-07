@@ -202,11 +202,11 @@
 </property>
 <property>
 <name>KRB5_CONFIG</name>
-<value>/opt/huawei/Bigdata/FusionInsight_BASE_V100R002C80SPC200/1_5_KerberosClient/etc/kdc.conf</value>
+<value>/opt/huawei/Bigdata/FusionInsight_BASE_V100R002C80SPC200/3_38_KerberosClient/etc/kdc.conf</value>
 </property>
 <property>
 <name>mapreduce.jobhistory.address</name>
-<value>long-20:26013</value>
+<value>189-211-68-223:26013</value>
 </property>
 <property>
 <name>mapreduce.job.ubertask.enable</name>
@@ -254,7 +254,7 @@
 </property>
 <property>
 <name>mapreduce.jobhistory.admin.address</name>
-<value>long-20:26015</value>
+<value>189-211-68-223:26015</value>
 </property>
 <property>
 <name>mapreduce.reduce.shuffle.parallelcopies</name>
@@ -274,7 +274,7 @@
 </property>
 <property>
 <name>mapreduce.jobhistory.webapp.https.address</name>
-<value>long-20:26014</value>
+<value>189-211-68-223:26014</value>
 </property>
 <property>
 <name>mapreduce.output.fileoutputformat.compress.codec</name>
@@ -290,7 +290,7 @@
 </property>
 <property>
 <name>mapreduce.jobhistory.webapp.address</name>
-<value>long-20:26012</value>
+<value>189-211-68-223:26012</value>
 </property>
 <property>
 <name>mapreduce.task.userlog.limit.kb</name>

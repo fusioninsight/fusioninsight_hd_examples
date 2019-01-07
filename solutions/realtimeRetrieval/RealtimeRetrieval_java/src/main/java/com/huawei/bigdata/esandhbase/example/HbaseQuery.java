@@ -36,6 +36,7 @@ public class HbaseQuery {
 
         //加载spark配置
         SparkConf sparkConf = new SparkConf().setAppName("CollectPersonInfo").setMaster("local[2]");
+        sparkConf.set("spark.testing.memory", "2147480000");
         //Spark使用Kryo序列化,减少内存的消耗,提高速度   1.开启Kryo序列化，2.class注册
         sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
         sparkConf.set("spark.kryo.registrator", "com.huawei.bigdata.esandhbase.example.MyRegistrator");

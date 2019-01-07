@@ -1,4 +1,4 @@
-package com.huawei.bigdata.spark.examples;
+package com.huawei.bigdata.examples.sparkstreaming.FemaleInfoCollection;
 
 import java.util.*;
 

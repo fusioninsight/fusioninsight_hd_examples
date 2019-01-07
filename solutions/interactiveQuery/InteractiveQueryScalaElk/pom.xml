@@ -152,11 +152,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>com.huawei.gsjdbc</groupId>
-            <artifactId>gsjdbc4</artifactId>
-            <version>V100R003C10SPC115</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>com.huawei.gsjdbc</groupId>-->
+            <!--<artifactId>gsjdbc4</artifactId>-->
+            <!--<version>V100R003C10SPC115</version>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>com.huawei.hadoop.dynalogger</groupId>
             <artifactId>dynalogger</artifactId>
@@ -172,6 +172,7 @@
             <artifactId>spark-streaming-kafka-0-10_2.11</artifactId>
             <version>2.1.0</version>
         </dependency>
+
     </dependencies>
 
     <build>

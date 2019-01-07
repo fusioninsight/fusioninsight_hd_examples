@@ -6,7 +6,7 @@ import org.apache.spark.serializer.KryoRegistrator;
  * Define serializer class.
  */
 public class MyRegistrator implements KryoRegistrator {
-  //×¢²áĞòÁĞ»¯
+    //ç”¨äºåºåˆ—åŒ–
   public void registerClasses(com.esotericsoftware.kryo.Kryo kryo) {
     kryo.register(org.apache.hadoop.hbase.io.ImmutableBytesWritable.class);
     kryo.register(org.apache.hadoop.hbase.client.Result.class);

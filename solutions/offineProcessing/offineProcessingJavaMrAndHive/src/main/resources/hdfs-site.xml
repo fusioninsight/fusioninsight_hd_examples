@@ -6,7 +6,7 @@
 </property>
 <property>
 <name>dfs.nameservices.mappings</name>
-<value>[{"name":"hacluster","roleInstances":["21","22"]}]</value>
+<value>[{"name":"hacluster","roleInstances":["171","170"]}]</value>
 </property>
 <property>
 <name>dfs.namenode.kerberos.principal.pattern</name>
@@ -66,7 +66,7 @@
 </property>
 <property>
 <name>oi.dfs.colocation.zookeeper.quorum</name>
-<value>long-20:24002,long-18:24002,long-43:24002</value>
+<value>189-211-68-223:24002,189-211-69-32:24002,189-211-68-235:24002</value>
 </property>
 <property>
 <name>dfs.namenode.rpc-address.haclusterX.remotenn1</name>
@@ -83,6 +83,14 @@
 <property>
 <name>dfs.encrypt.data.transfer.cipher.suites</name>
 <value>AES/CTR/NoPadding</value>
+</property>
+<property>
+<name>dfs.namenode.rpc-address.hacluster.171</name>
+<value>189-211-68-235:25000</value>
+</property>
+<property>
+<name>dfs.namenode.rpc-address.hacluster.170</name>
+<value>189-211-68-223:25000</value>
 </property>
 <property>
 <name>dfs.ha.namenodes.haclusterX2</name>
@@ -177,16 +185,8 @@
 <value>mapred/hadoop.hadoop.com@HADOOP.COM</value>
 </property>
 <property>
-<name>dfs.namenode.rpc-address.hacluster.21</name>
-<value>long-20:25000</value>
-</property>
-<property>
 <name>dfs.client.failover.proxy.provider.haclusterX4</name>
 <value>org.apache.hadoop.hdfs.server.namenode.ha.BlackListingFailoverProxyProvider</value>
-</property>
-<property>
-<name>dfs.namenode.rpc-address.hacluster.22</name>
-<value>long-43:25000</value>
 </property>
 <property>
 <name>dfs.namenode.rpc-address.haclusterX2.remotenn1</name>
@@ -206,7 +206,7 @@
 </property>
 <property>
 <name>dfs.ha.namenodes.hacluster</name>
-<value>21,22</value>
+<value>171,170</value>
 </property>
 <property>
 <name>ipc.client.connect.max.retries.on.timeouts</name>
@@ -222,7 +222,7 @@
 </property>
 <property>
 <name>dfs.datanode.address</name>
-<value>long-43:25009</value>
+<value>189-211-68-235:25009</value>
 </property>
 <property>
 <name>dfs.encrypt.data.transfer</name>
@@ -258,7 +258,7 @@
 </property>
 <property>
 <name>dfs.datanode.http.address</name>
-<value>long-43:25010</value>
+<value>189-211-68-235:25010</value>
 </property>
 <property>
 <name>dfs.namenode.rpc-address.haclusterX3.remotenn2</name>

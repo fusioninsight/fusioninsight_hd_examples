@@ -19,7 +19,6 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.*;
-import com.huawei.hadoop.security.LoginUtil;
 
 
 /**
@@ -28,45 +27,44 @@ import com.huawei.hadoop.security.LoginUtil;
 public class SparkHbasetoHbase {
 
   public static void main(final String[] args) throws Exception {
-  
-    //Æô¶¯Spark£¬Ëù±ØĞëµÄ²½Öè¡£
-    //setAppName¾ÍÊÇÔÚweb¶ËÏÔÊ¾Ó¦ÓÃÃû¡£
+
+    //ç”¨äºå¯åŠ¨Sparkçš„é…ç½®ï¼Œä¸€äº›è®¾ç½®å¯ä»¥åœ¨è¿™é‡Œè¿›è¡Œè®¾ç½®ï¼Œæ¯”å¦‚Appnameä¸ºåº”ç”¨çš„åå­—
     SparkConf conf = new SparkConf().setAppName("SparkHbasetoHbase");
-    conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");//ĞòÁĞ»¯
+    conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");//åºåˆ—åŒ–
     conf.set("spark.kryo.registrator", "com.huawei.bigdata.spark.examples.MyRegistrator");
 
-    //ÓÃÓÚ´ÓÏµÍ³ÊôĞÔ¼ÓÔØÉèÖÃ¡£
+    //é€šè¿‡é…ç½®æ–‡ä»¶åˆ›å»ºä¸€ä¸ªæ“ä½œSparkçš„å¯¹è±¡
     JavaSparkContext jsc = new JavaSparkContext(conf);
 
-    // Create the configuration parameter to connect the HBase. The hbase-site.xml must be included in the classpath.
+    // å»ºç«‹è¿æ¥hbaseçš„é…ç½®å‚æ•°ï¼Œæ­¤æ—¶éœ€è¦ä¿è¯hbase-site.xmlåœ¨classpathä¸­
     Configuration hbConf = HBaseConfiguration.create(jsc.hadoopConfiguration());
 
-    // Hbase²Ù×÷±íµÄ¶ÔÏó
+    // Scanä¸ºHbaseæ“ä½œè¡¨çš„å¯¹è±¡
     Scan scan = new org.apache.hadoop.hbase.client.Scan();
 
-    //Ö¸¶¨ĞèÒª²Ù×÷µÄÁĞ×å£¬Èç¹ûÎª¿Õ£¬Ôò·µ»ØËùÓĞµÄÁĞ
-    scan.addFamily(Bytes.toBytes("cf"));//colomn family
+    //å£°æ˜è¦æŸ¥è¯¢çš„è¡¨çš„ä¿¡æ¯ã€‚
+    scan.addFamily(Bytes.toBytes("cf"));//åˆ—æ—
 
-    //·´ĞòÁĞ»¯£¬½«É¨ÃèÀà×ª»¯³É×Ö·û´®ÀàĞÍ
+    //ååºåˆ—åŒ–ï¼Œå°†æ‰«æç±»è½¬åŒ–æˆå­—ç¬¦ä¸²
     org.apache.hadoop.hbase.protobuf.generated.ClientProtos.Scan proto = ProtobufUtil.toScan(scan);
-
+   // è½¬æˆBase64ç¼–ç 
     String scanToString = Base64.encodeBytes(proto.toByteArray());
-    //×÷Òµ²ÎÊı£¬Ö¸¶¨ÊäÈë±í¡£
+    //TableInputFormatå°†HBaseè¡¨æ ¼æ•°æ®è½¬æ¢ä¸ºMAP/reduceå¯ä»¥ä½¿ç”¨çš„æ ¼å¼
     hbConf.set(TableInputFormat.INPUT_TABLE, "table1");//table name
-    //Base-64±àÂëÉ¨ÃèÒÇ¡£
+    //Base-64ï¿½ï¿½ï¿½ï¿½É¨ï¿½ï¿½ï¿½Ç¡ï¿½
     hbConf.set(TableInputFormat.SCAN, scanToString);
 
-    //Í¨¹ıSpark½Ó¿Ú»ñÈ¡±íÖĞµÄÊı¾İ
-    //¶ÁÈ¡Êı¾İ²¢×ª»¯³Érdd TableInputFormat ÊÇ org.apache.hadoop.hbase.mapreduce °üÏÂµÄ¡£»ñµÃhbase²éÑ¯½á¹ûResult
+    //é€šè¿‡sparkæ¥å£è·å–è¡¨ä¸­çš„æ•°æ®
+    //è¯»å–æ•°æ®å¹¶è½¬åŒ–æˆrdd TableInputFormat æ˜¯ org.apache.hadoop.hbase.mapreduce åŒ…ä¸‹çš„ã€‚è·å¾—hbaseæŸ¥è¯¢ç»“æœResult
     JavaPairRDD rdd = jsc.newAPIHadoopRDD(hbConf, TableInputFormat.class, ImmutableBytesWritable.class, Result.class);
 
-    // ±éÀúhbase table1±íÖĞµÄÃ¿Ò»¸öpartition, È»ºó¸üĞÂµ½Hbase table2±í
-    // Èç¹ûÊı¾İÌõÊı½ÏÉÙ£¬Ò²¿ÉÒÔÊ¹ÓÃrdd.foreach()·½·¨
-    rdd.foreachPartition(//µü´úÆ÷
+    // éå†hbase table1è¡¨ä¸­çš„æ¯ä¸€ä¸ªpartition, ç„¶åæ›´æ–°åˆ°Hbase table2è¡¨
+    // å¦‚æœæ•°æ®æ¡æ•°è¾ƒå°‘ï¼Œä¹Ÿå¯ä»¥ä½¿ç”¨rdd.foreach()æ–¹æ³•
+    rdd.foreachPartition(//è¿­ä»£å™¨
       new VoidFunction<Iterator<Tuple2<ImmutableBytesWritable, Result>>>() {
-		  //Tuple2Ïàµ±ÓÚÒ»¸öÈİÆ÷£¬ÀïÃæ´æ·ÅµÄÊÇ²éÑ¯´¦ÀíµÄ½á¹û£¬½á¹ûµÄÀàĞÍ¿ÉÄÜ²»Ò»ÖÂ¡£¿ÉÒÔÍ¨¹ı_1(),_2()À´½øĞĞµ÷ÓÃ
+		  //Tuple2ç›¸å½“äºä¸€ä¸ªå®¹å™¨ï¼Œé‡Œé¢å­˜æ”¾çš„æ˜¯æŸ¥è¯¢å¤„ç†çš„ç»“æœï¼Œç»“æœçš„ç±»å‹å¯èƒ½ä¸ä¸€è‡´ã€‚å¯ä»¥é€šè¿‡_1(),_2()æ¥è¿›è¡Œè°ƒç”¨
         public void call(Iterator<Tuple2<ImmutableBytesWritable, Result>> iterator) throws Exception {
-          hBaseWriter(iterator);//µ÷ÓÃĞ´ÈëµÄ·½·¨
+          hBaseWriter(iterator);//è°ƒç”¨å†™å…¥çš„æ–¹æ³•
         }
       }
     );
@@ -84,38 +82,38 @@ public class SparkHbasetoHbase {
     String tableName = "table2";
     String columnFamily = "cf";
     String qualifier = "cid";
-    Configuration conf = HBaseConfiguration.create();//Ê¹ÓÃHBase×ÊÔ´´´½¨ÅäÖÃ
+    Configuration conf = HBaseConfiguration.create();//ä½¿ç”¨HBaseèµ„æºåˆ›å»ºé…ç½®
     Connection connection = null;
     Table table = null;
     try {
-      connection = ConnectionFactory.createConnection(conf);//¸ù¾İÅäÖÃ´´½¨Ò»¸öConnection¶ÔÏó
-      table = connection.getTable(TableName.valueOf(tableName));//¼ìË÷ÓÃÓÚ·ÃÎÊ±íµÄTableÊµÏÖ¡£
+      connection = ConnectionFactory.createConnection(conf);//æ ¹æ®é…ç½®åˆ›å»ºä¸€ä¸ªConnectionå¯¹è±¡
+      table = connection.getTable(TableName.valueOf(tableName));//æ£€ç´¢ç”¨äºè®¿é—®è¡¨çš„Tableå®ç°
 
       List<Get> rowList = new ArrayList<Get>();
       List<Tuple2<ImmutableBytesWritable, Result>> table1List = new ArrayList<Tuple2<ImmutableBytesWritable, Result>>();
-	  //½øĞĞµü´ú£¬°Ñ´Ótable1µÄÊı¾İ·Åµ½listÖĞ¡£
+	  //è¿›è¡Œè¿­ä»£ï¼ŒæŠŠä»table1çš„æ•°æ®æ”¾åˆ°listä¸­ã€‚
       while (iterator.hasNext()) {
         Tuple2<ImmutableBytesWritable, Result> item = iterator.next();
-        Get get = new Get(item._2().getRow());//»ñµÃÊı¾İµÄµÚ¶ş¸öÖµ£¬resulet¶ÔÓ¦µÄÖµ
+        Get get = new Get(item._2().getRow());//è·å¾—æ•°æ®çš„ç¬¬äºŒä¸ªå€¼ï¼Œresuletå¯¹åº”çš„å€¼Öµ
         table1List.add(item);
         rowList.add(get);
       }
 
-      //´Ótable2ÖĞ»ñµÃÊı¾İ
+      //ä»table2ä¸­è·å¾—æ•°æ®
       Result[] resultDataBuffer = table.get(rowList);
       List<Put> putList = new ArrayList<Put>();
       for (int i = 0; i < resultDataBuffer.length; i++) {
-		//±éÀútable2µÄÃ¿ÌõÊı¾İ
+		//éå†table2çš„æ¯æ¡æ•°æ®
         Result resultData = resultDataBuffer[i]; 
-		//ÅĞ¿Õ
+		//åˆ¤ç©º
         if (!resultData.isEmpty()) {
           //query hbase1Value
           String hbase1Value = "";
-		  //½«´Ótable1È¡³öÀ´µÄÊı¾İ·Åµ½µü´úÆ÷ÖĞ£¬½øĞĞ±éÀú
+		  //å°†ä»table1å–å‡ºæ¥çš„æ•°æ®æ”¾åˆ°è¿­ä»£å™¨ä¸­ï¼Œè¿›è¡Œéå†
           Iterator<Cell> it = table1List.get(i)._2().listCells().iterator();
           while (it.hasNext()) {
             Cell c = it.next();
-            // Í¨¹ıÁĞ×åºÍĞŞÊÎ·ûÈ¥»ñµÃtable1µÄÖµ
+            // é€šè¿‡åˆ—æ—å’Œä¿®é¥°ç¬¦å»è·å¾—table1çš„å€¼
             if (columnFamily.equals(Bytes.toString(CellUtil.cloneFamily(c)))
               && qualifier.equals(Bytes.toString(CellUtil.cloneQualifier(c)))) {
               hbase1Value = Bytes.toString(CellUtil.cloneValue(c));
@@ -123,12 +121,12 @@ public class SparkHbasetoHbase {
           }
 
           String hbase2Value = Bytes.toString(resultData.getValue(columnFamily.getBytes(), qualifier.getBytes()));
-		  //¶ÔÏó½øĞĞput²Ù×÷£¬±ØĞëÊ×ÏÈÊµÀı»¯put
+		  //å¯¹è±¡è¿›è¡Œputæ“ä½œï¼Œå¿…é¡»é¦–å…ˆå®ä¾‹åŒ–putã€‚
           Put put = new Put(table1List.get(i)._2().getRow());
 
-          //¼ÆËã½á¹ûÖµ
+          //è®¡ç®—ç»“æœå€¼
           int resultValue = Integer.parseInt(hbase1Value) + Integer.parseInt(hbase2Value);
-          //ÉèÖÃÊı¾İ
+          //è®¾ç½®æ•°æ®
           put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(qualifier), Bytes.toBytes(String.valueOf(resultValue)));
           putList.add(put);
         }

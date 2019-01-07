@@ -17,6 +17,10 @@
         <value>/zwl/promoteoutput/</value>
     </property>
     <property>
+        <name>promoteUser.client.mapred.result</name>
+        <value>/zwl/promoteoutputresult/</value>
+    </property>
+    <property>
         <name>username.client.mapred.output</name>
         <value>/zwl/promoteOutput/</value>
     </property>

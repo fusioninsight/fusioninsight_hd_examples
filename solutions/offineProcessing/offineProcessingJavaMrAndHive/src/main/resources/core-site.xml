@@ -14,7 +14,7 @@
 </property>
 <property>
 <name>cas.conf.serverName.on</name>
-<value>https://189.154.5.201:20026/Yarn/ResourceManager/35/</value>
+<value>https://189.211.68.105:20026/Yarn/ResourceManager/186/</value>
 </property>
 <property>
 <name>hadoop.security.auth_to_local</name>
@@ -84,7 +84,7 @@ DEFAULT</value>
 </property>
 <property>
 <name>hadoop.http.kerberos.internal.spnego.principal</name>
-<value>HTTP/long-43@HADOOP.COM</value>
+<value>HTTP/189-211-68-235@HADOOP.COM</value>
 </property>
 <property>
 <name>hadoop.proxyuser.mapred.groups</name>
@@ -104,7 +104,7 @@ DEFAULT</value>
 </property>
 <property>
 <name>ha.zookeeper.quorum</name>
-<value>long-20:24002,long-18:24002,long-43:24002</value>
+<value>189-211-68-223:24002,189-211-69-32:24002,189-211-68-235:24002</value>
 </property>
 <property>
 <name>hadoop.http.filter.initializers</name>
@@ -216,7 +216,7 @@ DEFAULT</value>
 </property>
 <property>
 <name>hadoop.security.groups.shell.command.timeout</name>
-<value>60000s</value>
+<value>60s</value>
 </property>
 <property>
 <name>hadoop.proxyuser.spark2x4.hosts</name>
@@ -264,7 +264,7 @@ DEFAULT</value>
 </property>
 <property>
 <name>cas.conf.serverName.off</name>
-<value>https://long-43:26001</value>
+<value>https://189-211-68-235:26001</value>
 </property>
 <property>
 <name>hadoop.http.server.MaxRequests</name>
@@ -280,7 +280,7 @@ DEFAULT</value>
 </property>
 <property>
 <name>cas.conf.casServerUrlPrefix.on</name>
-<value>https://189.154.5.200:20027/cas/</value>
+<value>https://189.211.69.103:20027/cas/</value>
 </property>
 <property>
 <name>hadoop.security.authorization</name>
@@ -300,7 +300,7 @@ DEFAULT</value>
 </property>
 <property>
 <name>cas.conf.casServerUrlPrefix.off</name>
-<value>https://189.154.5.201:20009/cas/</value>
+<value>https://189.211.68.105:20009/cas/</value>
 </property>
 <property>
 <name>hadoop.security.authentication</name>
@@ -344,7 +344,7 @@ DEFAULT</value>
 </property>
 <property>
 <name>hadoop.http.authentication.center</name>
-<value>https://189.154.5.201:20009/cas/</value>
+<value>https://189.211.68.105:20009/cas/</value>
 </property>
 <property>
 <name>hadoop.proxyuser.hive3.hosts</name>
@@ -404,7 +404,7 @@ DEFAULT</value>
 </property>
 <property>
 <name>hadoop.http.authentication.logout</name>
-<value>https://189.154.5.201:20009/cas/logout?service=https://189.154.5.201:20026/Yarn/ResourceManager/35/</value>
+<value>https://189.211.68.105:20009/cas/logout?service=https://189.211.68.105:20026/Yarn/ResourceManager/186/</value>
 </property>
 <property>
 <name>hadoop.proxyuser.hive3.groups</name>
@@ -420,7 +420,7 @@ DEFAULT</value>
 </property>
 <property>
 <name>hadoop.http.authentication.kerberos.principal</name>
-<value>HTTP/long-43@HADOOP.COM</value>
+<value>HTTP/189-211-68-235@HADOOP.COM</value>
 </property>
 <property>
 <name>hadoop.proxyuser.hbase.groups</name>
@@ -448,11 +448,11 @@ DEFAULT</value>
 </property>
 <property>
 <name>cas.conf.casServerLoginUrl</name>
-<value>https://189.154.5.201:20009/cas/login</value>
+<value>https://189.211.68.105:20009/cas/login</value>
 </property>
 <property>
 <name>hadoop.http.server.name</name>
-<value>https://long-43:26001</value>
+<value>https://189-211-68-235:26001</value>
 </property>
 <property>
 <name>fs.s3a.connection.ssl.enabled</name>

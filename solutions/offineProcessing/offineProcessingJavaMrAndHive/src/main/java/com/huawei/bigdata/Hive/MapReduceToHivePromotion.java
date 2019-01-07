@@ -1,6 +1,7 @@
 package com.huawei.bigdata.Hive;
 
 import com.huawei.bigdata.tools.InfoBean;
+import com.huawei.bigdata.tools.PromoteResult;
 import com.huawei.bigdata.tools.PromoteUsersInfo;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.logging.Log;
@@ -90,6 +91,39 @@ public class MapReduceToHivePromotion {
                 }
             }
         }
+    public static class PromotionfilterMapper extends Mapper<Object, Text, IntWritable, PromoteResult>
+    {
+        PromoteResult bean = new PromoteResult();
+        IntWritable userId = new IntWritable();
+        public void map(Object key ,Text value, Context context) throws IOException,InterruptedException
+        {
+            String line = value.toString();
+            String[] data = line.split(",");
+           bean.set(data[1],data[4]);
+           userId.set(Integer.parseInt(data[0]));
+            context.write(userId,bean);
+
+        }
+    }
+    public static class PromotionfilterReducer extends Reducer<IntWritable,PromoteResult,PromoteResult,NullWritable>
+    {
+        public void reduce(IntWritable key,Iterable<PromoteResult> beans,Context context) throws IOException,InterruptedException
+        {
+            PromoteResult bean = new PromoteResult();
+            ArrayList<PromoteResult> PromoteResults = new ArrayList<PromoteResult>();
+            int sum =0;
+            for(PromoteResult promoteResult : beans)
+            {
+                sum = sum++;
+                if (sum>=10)
+                {
+                    context.write(promoteResult,NullWritable.get());
+                }
+            }
+
+        }
+
+    }
     public static class CollectionMapper extends Mapper<Object, Text, IntWritable, InfoBean>
     {
         InfoBean bean = new InfoBean();

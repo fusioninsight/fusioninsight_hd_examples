@@ -1,54 +1,57 @@
 package com.huawei.bigdata.Local;
 
 import com.huawei.bigdata.Hive.MapReduceToHivePromotion;
-import com.huawei.bigdata.tools.InfoBean;
-import com.huawei.bigdata.tools.LoginUtil;
-import com.huawei.bigdata.tools.PromoteUsersInfo;
-import com.huawei.bigdata.tools.TarManager;
+import com.huawei.bigdata.tools.*;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
+
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import com.huawei.bigdata.Hive.MapReduceToHivePromotion.PromotionMapper;
-import com.huawei.bigdata.Hive.MapReduceToHivePromotion.PromotionReducer;
+
 import com.huawei.bigdata.Hive.MapReduceToHivePromotion.CollectionReducer;
 import com.huawei.bigdata.Hive.MapReduceToHivePromotion.CollectionMapper;
+import com.huawei.bigdata.Hive.MapReduceToHivePromotion.PromotionReducer;
+import com.huawei.bigdata.Hive.MapReduceToHivePromotion.PromotionMapper;
 import com.huawei.bigdata.Hive.MapReduceToHivePromotion.ResultMap;
 import com.huawei.bigdata.Hive.MapReduceToHivePromotion.ResultReduce;
-import sun.security.krb5.internal.tools.Kinit;
+import com.huawei.bigdata.Hive.MapReduceToHivePromotion.PromotionfilterReducer;
+import com.huawei.bigdata.Hive.MapReduceToHivePromotion.PromotionfilterMapper;
 
 import java.io.File;
 
 public class LocalRunner {
         public static void main(String[] args) throws Exception{
             TarManager.createJar();
-//            final String PRNCIPAL_NAME = "fwc@HADOOP.COM";//需要修改为实际在manager添加的用户
-//            final String KRB5_CONF = LocalRunner.class.getClassLoader().getResource("krb5.conf").getPath();
-//            final String KEY_TAB = LocalRunner.class.getClassLoader().getResource("user.keytab").getPath();
-         //   Configuration conf =getConfiguration();
-//
-//            LoginUtil.login(PRNCIPAL_NAME,KEY_TAB,KRB5_CONF,conf);
-            String KRB5_CONF = LocalRunner.class.getClassLoader().getResource("krb5.conf").getPath();
-            System.out.println(KRB5_CONF);
+            final String PRNCIPAL_NAME = "lyysxg";//需要修改为实际在manager添加的用户
+            final String KRB5_CONF = LocalRunner.class.getClassLoader().getResource("krb5.conf").getPath();
+            final String KEY_TAB = LocalRunner.class.getClassLoader().getResource("user.keytab").getPath();
+            Configuration conf =getConfiguration();
             System.setProperty("java.security.krb5.conf", KRB5_CONF);
             System.setProperty("sun.security.krb5.debug", "true");
             LoginUtil.setZookeeperServerPrincipal("zookeeper/hadoop.hadoop.com");
             LoginUtil.setKrb5Config(KRB5_CONF);
-            String[] kinitParam = {"panel", "Huawei@123"};
-            Kinit.main(kinitParam);
+            LoginUtil.login(PRNCIPAL_NAME,KEY_TAB,KRB5_CONF,conf);
+//            String KRB5_CONF = LocalRunner.class.getClassLoader().getResource("krb5.conf").getPath();
+//            System.out.println(KRB5_CONF);
 
-            Configuration conf =getConfiguration();
+
+//            String[] kinitParam = {"panel", "Huawei@123"};
+//            Kinit.main(kinitParam);
+
+//            Configuration conf =getConfiguration();
             String inputPath = conf.get("user.client.mapred.input");
             System.out.println(inputPath);
             String glodOutputPath = conf.get("glodUser.client.mapred.output");
             System.out.println(glodOutputPath);
             String promoteOutputPath = conf.get("promoteUser.client.mapred.output");
             String gloldresult =conf.get("glodUser.client.mapred.output.result");
+            String promoteOutputResult =conf.get("promoteUser.client.mapred.result");
             System.out.println(promoteOutputPath);
             String dir = System.getProperty("user.dir");
 
@@ -77,6 +80,7 @@ public class LocalRunner {
 //            FileInputFormat.addInputPath(job1, new Path(inputPath));
 //            FileOutputFormat.setOutputPath(job1, new Path(promoteOutputPath));
             // Submit the job to a remote environment for execution.
+            //用户注册和购物信息表合并
             job.setMapperClass(CollectionMapper.class);
             job.setReducerClass(CollectionReducer.class);
 
@@ -93,10 +97,10 @@ public class LocalRunner {
                 fileSystem.delete(path, true);//第二个参数用于指定是否递归删除
             }
             FileOutputFormat.setOutputPath(job, new Path(glodOutputPath));
-//            System.exit(job.waitForCompletion(true) ? 0 : 1);
+
             if(job.waitForCompletion(true))
             {
-
+                //生成金牌用户
                 job1.setJar(dir + File.separator + "mapreduce-examples.jar");
                 job1.setJarByClass(MapReduceToHivePromotion.class);
                 job1.setMapperClass(ResultMap.class);
@@ -113,8 +117,8 @@ public class LocalRunner {
 //                job1.setNumReduceTasks(50);
                 FileOutputFormat.setOutputPath(job1, new Path(gloldresult));
             }
-            if(job1.waitForCompletion(true))
-            {
+//            if(job1.waitForCompletion(true))
+//            {
                 job2.setJar(dir + File.separator + "mapreduce-examples.jar");
                 job2.setJarByClass(MapReduceToHivePromotion.class);
                 job2.setMapperClass(PromotionMapper.class);
@@ -130,8 +134,26 @@ public class LocalRunner {
 //                job1.setMaxMapAttempts(4);
 //                job1.setNumReduceTasks(50);
                 FileOutputFormat.setOutputPath(job2, new Path(promoteOutputPath));
-                System.exit(job2.waitForCompletion(true)?0:1);
-            }
+                if (job2.waitForCompletion(true))
+                {
+                    job3.setJar(dir + File.separator + "mapreduce-examples.jar");
+                    job3.setJarByClass(MapReduceToHivePromotion.class);
+                    job3.setMapperClass(PromotionfilterMapper.class);
+                    job3.setReducerClass(PromotionfilterReducer.class);
+                    job3.setMapOutputKeyClass(IntWritable.class);
+                    job3.setMapOutputValueClass(PromoteResult.class);
+                    job3.setOutputKeyClass(PromoteResult.class);
+                    job3.setOutputValueClass(NullWritable.class);
+                    FileInputFormat.addInputPath(job3, new Path(promoteOutputPath));
+                    if (fileSystem.exists(new Path(promoteOutputResult))) {
+                        fileSystem.delete(new Path(promoteOutputResult), true);
+                    }
+//                job1.setMaxMapAttempts(4);
+//                job1.setNumReduceTasks(50);
+                    FileOutputFormat.setOutputPath(job3, new Path(promoteOutputResult));
+                }
+                System.exit(job3.waitForCompletion(true)&&job1.waitForCompletion(true)?0:1);
+
 //            if(job2.waitForCompletion(true))
 //            {
 //                job

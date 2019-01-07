@@ -20,24 +20,26 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.hive.HiveContext;
 
 /**
- * calculate data from hive/hbase,then update to hbase
+ * 从Hive或者HBase计算数据然后存储到HBase.
  */
 public class SparkHivetoHbase {
 
   public static void main(String[] args) throws Exception {
 
-    // Obtain the data in the table through the Spark interface.
+    // 通过Spark接口获取表中的数据。
     SparkConf conf = new SparkConf().setAppName("SparkHivetoHbase");
     JavaSparkContext jsc = new JavaSparkContext(conf);
+    //Spark SQL执行引擎的一个实例，它与存储在Hive中的数据集成在一起。从类路径上的hive-site.xml读取Hive的配置。
     HiveContext sqlContext = new org.apache.spark.sql.hive.HiveContext(jsc);
+    //Sparksql对象，用于操作Sparksql
     DataFrame dataFrame = sqlContext.sql("select name, account from person");
 
-    // Traverse every Partition in the hive table and update the hbase table
-    // If less data, you can use rdd.foreach()
-    dataFrame.toJavaRDD().foreachPartition(
+    //遍历hive表中的每个分区并更新hbase表
+    //少量数据使用forreach()
+    dataFrame.toJavaRDD().foreachPartition(//迭代器
       new VoidFunction<Iterator<Row>>() {
         public void call(Iterator<Row> iterator) throws Exception {
-          hBaseWriter(iterator);
+          hBaseWriter(iterator);//调方法进行写入
         }
       }
     );
@@ -54,42 +56,45 @@ public class SparkHivetoHbase {
     // read hbase
     String tableName = "table2";
     String columnFamily = "cf";
-    Configuration conf = HBaseConfiguration.create();
+    Configuration conf = HBaseConfiguration.create();//使用HBase资源创建配置
     Connection connection = null;
     Table table = null;
     try {
-      connection = ConnectionFactory.createConnection(conf);
-      table = connection.getTable(TableName.valueOf(tableName));
+      connection = ConnectionFactory.createConnection(conf);//根据配置创建一个Connection对象
+      table = connection.getTable(TableName.valueOf(tableName));//检索用于访问表的Table实现。
 
       List<Row> table1List = new ArrayList<Row>();
       List<Get> rowList = new ArrayList<Get>();
-      while (iterator.hasNext()) {
+      while (iterator.hasNext()) {//进行迭代，把从table1的数据放到list中。
         Row item = iterator.next();
-        Get get = new Get(item.getString(0).getBytes());
+        Get get = new Get(item.getString(0).getBytes());//获的第一个位置的数据
         table1List.add(item);
         rowList.add(get);
       }
 
-      // get data from hbase table
+      // 从table2中获得数据
       Result[] resultDataBuffer = table.get(rowList);
 
       // set data for hbase
       List<Put> putList = new ArrayList<Put>();
+
       for (int i = 0; i < resultDataBuffer.length; i++) {
-        // hbase row
+        //遍历table2的每条数据
         Result resultData = resultDataBuffer[i];
+        //判空
         if (!resultData.isEmpty()) {
-          // get hiveValue
+          // 获得hive的数据
           int hiveValue = table1List.get(i).getInt(1);
 
-          // get hbaseValue by column Family and colomn qualifier
+          // // 通过列族和修饰符去获得hive的值
           String hbaseValue = Bytes.toString(resultData.getValue(columnFamily.getBytes(), "cid".getBytes()));
+          //对象进行put操作，必须首先实例化put。
           Put put = new Put(table1List.get(i).getString(0).getBytes());
 
-          // calculate result value
+           //计算结果值
           int resultValue = hiveValue + Integer.valueOf(hbaseValue);
 
-          // set data to put
+          //设置数据
           put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes("cid"), Bytes.toBytes(String.valueOf(resultValue)));
           putList.add(put);
         }

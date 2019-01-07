@@ -87,5 +87,6 @@ public class AProducerDemoForDoc {
             //通过sleep保证进程生命周期内，消息被真正发送。
             try {sleep(1000);} catch (Exception e) {LOG.error(e.toString());}
         }
+
     }
 }

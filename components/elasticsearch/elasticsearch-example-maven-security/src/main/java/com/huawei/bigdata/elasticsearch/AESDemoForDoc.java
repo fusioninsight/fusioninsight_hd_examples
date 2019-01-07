@@ -36,7 +36,7 @@ import java.util.concurrent.ThreadLocalRandom;
  *
  *
  * es-example.properties内容：请根据自己的情况修改下面的内容
-    EsServerHost=187.7.60.150:24148,187.7.60.223:24148,187.7.60.104:24148
+    EsServerHost=187.7.60.150:24100,187.7.60.223:24100,187.7.60.104:24100
     MaxRetryTimeoutMillis=300000
     ConnectTimeout=5000
     SocketTimeout=60000
@@ -81,9 +81,11 @@ public class AESDemoForDoc {
         } catch (Exception e) {
             throw new Exception("Failed to load properties file : " + path);
         }
+		
         //“esServerHost”为已安装Elasticsearch集群中任意节点 IP与该IP节点上已安装的任意Elasticsearch实例的HTTP端口组合的列表，
         // 形如“ip1：port1，ip2:port2,ip3:port3......”。
-        // 该端口值可以通过以下方式获取：FusionInsight Manager界面点击“服务管理 > Elasticsearch > 服务配置”，
+		// **不建议在ES Master提交业务，业务量过大导致ES Master崩溃**
+        // 所以请配置ES Node对应的ip和端口，该端口值可以通过以下方式获取：FusionInsight Manager界面点击“服务管理 > Elasticsearch > 服务配置>参数类别:(需选择)全部配置>”，
         esServerHost = properties.getProperty("EsServerHost");
         MaxRetryTimeoutMillis = Integer.valueOf(properties.getProperty("MaxRetryTimeoutMillis"));
         ConnectTimeout = Integer.valueOf(properties.getProperty("ConnectTimeout"));

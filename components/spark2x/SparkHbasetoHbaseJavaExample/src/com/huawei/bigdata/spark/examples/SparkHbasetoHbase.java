@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.hadoop.fs.Path;
+import org.apache.spark.SparkConf;
+import org.apache.spark.sql.SparkSession;
 import scala.Tuple2;
 
 import org.apache.hadoop.conf.Configuration;
@@ -18,7 +21,7 @@ import org.apache.hadoop.hbase.util.*;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.VoidFunction;
-import org.apache.spark.*;
+import com.huawei.bigdata.spark.security.LoginUtil;
 
 
 /**
@@ -29,22 +32,36 @@ public class SparkHbasetoHbase
 
     public static void main(String[] args) throws Exception
     {
-        SparkConf conf = new SparkConf().setAppName("SparkHbasetoHbase");
-        conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
-        conf.set("spark.kryo.registrator", "com.huawei.bigdata.spark.examples.MyRegistrator");
-        JavaSparkContext jsc = new JavaSparkContext(conf);
+        /******* 以上是认证代码************/
+//        SparkConf conf = new SparkConf().setAppName("SparkHbasetoHbase");
+//        conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+//        conf.set("spark.kryo.registrator", "com.huawei.bigdata.spark.examples.MyRegistrator");
+//        JavaSparkContext jsc = new JavaSparkContext(conf);
+        SparkConf sparkConf = new SparkConf().setAppName("CollectPersonInfo").setMaster("local[2]");
+        sparkConf.set("spark.testing.memory", "2147480000");
+        //Spark使用Kryo序列化,减少内存的消耗,提高速度   1.开启Kryo序列化，2.class注册
+        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+        sparkConf.set("spark.kryo.registrator", "com.huawei.bigdata.esandhbase.example.MyRegistrator");
+        JavaSparkContext jsc = new JavaSparkContext(sparkConf);
         // Create the configuration parameter to connect the HBase. The hbase-site.xml must be included in the classpath.
         Configuration hbConf = HBaseConfiguration.create(jsc.hadoopConfiguration());
+        hbConf.addResource(new Path(SparkHbasetoHbase.class.getClassLoader().getResource("core-site.xml").getPath()), false);
+        hbConf.addResource(new Path(SparkHbasetoHbase.class.getClassLoader().getResource("hdfs-site.xml").getPath()), false);
+        hbConf.addResource(new Path(SparkHbasetoHbase.class.getClassLoader().getResource("hbase-site.xml").getPath()), false);
+        String krb5Conf =   SparkHbasetoHbase.class.getClassLoader().getResource("krb5.conf").getPath();
+        String keyTab =  SparkHbasetoHbase.class.getClassLoader().getResource("user.keytab").getPath();
+        String principal = "lyysxg";
+        LoginUtil.setJaasFile(principal, keyTab);
+        LoginUtil.setZookeeperServerPrincipal("zookeeper/hadoop.hadoop.com");
+        LoginUtil.login(principal, keyTab, krb5Conf, hbConf);
 
         // Declare the information of the table to be queried.
         Scan scan = new org.apache.hadoop.hbase.client.Scan();
-        scan.addFamily(Bytes.toBytes("cf"));//colomn family
+        scan.addFamily(Bytes.toBytes("info"));//colomn family
         org.apache.hadoop.hbase.protobuf.generated.ClientProtos.Scan proto = ProtobufUtil.toScan(scan);
         String scanToString = Base64.encodeBytes(proto.toByteArray());
         hbConf.set(TableInputFormat.INPUT_TABLE, "table1");//table name
         hbConf.set(TableInputFormat.SCAN, scanToString);
-
-        // Obtain the data in the table through the Spark interface.
         JavaPairRDD rdd = jsc.newAPIHadoopRDD(hbConf, TableInputFormat.class, ImmutableBytesWritable.class, Result.class);
 
         // Traverse every Partition in the HBase table1 and update the HBase table2
@@ -69,8 +86,8 @@ public class SparkHbasetoHbase
     {
         //read hbase
         String tableName = "table2";
-        String columnFamily = "cf";
-        String qualifier = "cid";
+        String columnFamily = "info";
+        String qualifier = "上网时长";
         Configuration conf = HBaseConfiguration.create();
         Connection connection = null;
         Table table = null;

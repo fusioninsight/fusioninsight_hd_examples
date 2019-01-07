@@ -26,45 +26,49 @@ import scala.Tuple2;
 import scala.Tuple3;
 public class FemaleInfoCollection
 {
-    static
-    {
- PropertyConfigurator.configure(FemaleInfoCollection.class.getClassLoader().getResource("log4j-executor.properties").getPath());
-    }
-    private final static Log LOG = LogFactory.getLog(FemaleInfoCollection.class.getName());
+//    static
+//    {
+// PropertyConfigurator.configure(FemaleInfoCollection.class.getClassLoader().getResource("log4j-executor.properties").getPath());
+//    }
+//    private final static Log LOG = LogFactory.getLog(FemaleInfoCollection.class.getName());
     public static void main(String[] args) throws Exception
 
     {
-        //认证代码，方便在本地进行调试
-        //打包放到服务器上运行的话，可以把认证代码删掉
-        //加载HDFS服务端配置，包含客户端与服务端对接配置
-        Configuration conf = new Configuration();
-
-        //加载HDFS服务端配置，包含客户端与服务端对接配置
-        conf.addResource(new Path(FemaleInfoCollection.class.getClassLoader().getResource("hdfs-site.xml").getPath()));
-        conf.addResource(new Path(FemaleInfoCollection.class.getClassLoader().getResource("core-site.xml").getPath()));
-
-        //需要修改方法中的PRNCIPAL_NAME（用户名）
-        //安全模式需要进行kerberos认证，只在系统启动时执行一次。非安全模式可以删除
-        if ("kerberos".equalsIgnoreCase(conf.get("hadoop.security.authentication")))
-        {
-            //认证相关，安全模式需要，普通模式可以删除
-            String PRNCIPAL_NAME = "panel";//需要修改为实际在manager添加的用户
-            String KRB5_CONF = FemaleInfoCollection.class.getClassLoader().getResource("krb5.conf").getPath();
-            String KEY_TAB = FemaleInfoCollection.class.getClassLoader().getResource("user.keytab").getPath();
-            System.setProperty("java.security.krb5.conf", KRB5_CONF); //指定kerberos配置文件到JVM
-            LoginUtil.login(PRNCIPAL_NAME, KEY_TAB, KRB5_CONF, conf);
-        }
+//        //认证代码，方便在本地进行调试
+//        //打包放到服务器上运行的话，可以把认证代码删掉
+//        //加载HDFS服务端配置，包含客户端与服务端对接配置
+//        Configuration conf = new Configuration();
+//
+//        //加载HDFS服务端配置，包含客户端与服务端对接配置
+//        conf.addResource(new Path(FemaleInfoCollection.class.getClassLoader().getResource("hdfs-site.xml").getPath()));
+//        conf.addResource(new Path(FemaleInfoCollection.class.getClassLoader().getResource("core-site.xml").getPath()));
+//
+//        //需要修改方法中的PRNCIPAL_NAME（用户名）
+//        //安全模式需要进行kerberos认证，只在系统启动时执行一次。非安全模式可以删除
+//        if ("kerberos".equalsIgnoreCase(conf.get("hadoop.security.authentication")))
+//        {
+//            //认证相关，安全模式需要，普通模式可以删除
+//            String PRNCIPAL_NAME = "lyysxg";//需要修改为实际在manager添加的用户
+//            String KRB5_CONF = FemaleInfoCollection.class.getClassLoader().getResource("krb5.conf").getPath();
+//            String KEY_TAB = FemaleInfoCollection.class.getClassLoader().getResource("user.keytab").getPath();
+//            System.setProperty("java.security.krb5.conf", KRB5_CONF); //指定kerberos配置文件到JVM
+//            LoginUtil.login(PRNCIPAL_NAME, KEY_TAB, KRB5_CONF, conf);
+//        }
         /******* 以上是认证代码************/
         //创建一个对象，用于配置Spark的一些设置
-        SparkSession spark = SparkSession.builder().master("local").appName("spark core").getOrCreate();
-        //加载所要进行计算的文件，这里的路径为HDFS上的路径
-        Dataset<String> data = spark.read().textFile("/myfile/date");
+        SparkConf spark = new SparkConf().setAppName("spark core").setMaster("local");
+
+        JavaSparkContext jsc = new JavaSparkContext(spark);
+        JavaRDD<String> data = jsc.textFile(args[0]);
+//        SparkSession spark = SparkSession.builder().master("local").appName("spark core").getOrCreate();
+//        //加载所要进行计算的文件，这里的路径为HDFS上的路径
+//        Dataset<String> data = spark.read().textFile("/myfile/date");
 
 
         //将原数据转换成元组的形式
         //这里调用了Transformation算子的map方法，Map算子里面调用了Fuction方法、
         //Fuction方法有2个参数，第一个为需要转换的文件的类型，第二个转换后的类型
-        JavaRDD<Tuple3<String,String,Integer>> person = data.javaRDD().map(new Function<String,Tuple3<String,String,Integer>>()
+        JavaRDD<Tuple3<String,String,Integer>> person = data.map(new Function<String,Tuple3<String,String,Integer>>()
         {
             private static final long serialVersionUID = -2381522520231963249L;
             @Override
@@ -162,7 +166,7 @@ public class FemaleInfoCollection
 
         }
 
-        spark.stop();
+        jsc.stop();
 
     }
 

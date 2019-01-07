@@ -19,17 +19,18 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import scala.*;
+
 import java.lang.Boolean;
 import java.lang.Double;
 import java.lang.Long;
 import java.util.List;
 public class SparkToSparkSQL
 {
-    static
-    {
-        PropertyConfigurator.configure(SparkToSparkSQL.class.getClassLoader().getResource("log4j-executor.properties").getPath());
-    }
-    private final static Log LOG = LogFactory.getLog(SparkToSparkSQL.class.getName());
+//    static
+//    {
+//        PropertyConfigurator.configure(SparkToSparkSQL.class.getClassLoader().getResource("log4j-executor.properties").getPath());
+//    }
+//    private final static Log LOG = LogFactory.getLog(SparkToSparkSQL.class.getName());
     public static void main(String[] args) throws Exception
     {
         //用于认证和连接HDFS，如果打包的话，可以删除这个方法
@@ -38,7 +39,9 @@ public class SparkToSparkSQL
         //创建一个对象用来操作Spark。Spark2.0以后，用SparkSession代替了SparkConf和SparkContext
         //appName是设置应用的名字，方便在Yarn上查找到。
         //master是指定运行方式，如果采用cluster,要删除master,不然报错。
-        SparkSession spark = SparkSession.builder().appName("spark core").master("local").getOrCreate();
+        //如果需要在windows环境上测试，需要加上master如下：
+        //SparkSession spark = SparkSession.builder().appName("spark core").master("local").getOrCreate();
+        SparkSession spark = SparkSession.builder().appName("spark core").getOrCreate();
         //从HDFS上读取文件，路径为HDFS上的路径
         Dataset dealDataRDD = spark.read().textFile("/hacluster/myfile/shooppingTable.txt");//购物数据:用户ID、商品名称、商品分类、商品金额、购物日期
         String path1 = "/hacluster/myfile/userTable.txt";//HDFS上的位置
@@ -90,7 +93,7 @@ public class SparkToSparkSQL
         if ("kerberos".equalsIgnoreCase(conf.get("hadoop.security.authentication")))
         {
             //认证相关，安全模式需要，普通模式可以删除
-            String PRNCIPAL_NAME = "panel";//需要修改为实际在manager添加的用户
+            String PRNCIPAL_NAME = "lyysxg";//需要修改为实际在manager添加的用户
             String KRB5_CONF = SparkToSparkSQL.class.getClassLoader().getResource("krb5.conf").getPath();
             String KEY_TAB = SparkToSparkSQL.class.getClassLoader().getResource("user.keytab").getPath();
             System.setProperty("java.security.krb5.conf", KRB5_CONF); //指定kerberos配置文件到JVM

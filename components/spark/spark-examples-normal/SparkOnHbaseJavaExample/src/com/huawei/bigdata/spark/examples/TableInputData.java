@@ -3,6 +3,7 @@ package com.huawei.bigdata.spark.examples;
 import java.io.IOException;
 import java.util.List;
 
+import scala.Tuple3;
 import scala.Tuple4;
 
 import org.apache.hadoop.conf.Configuration;
@@ -19,14 +20,15 @@ import org.apache.spark.api.java.function.Function;
  */
 public class TableInputData {
   public static void main(String[] args) throws IOException {
-    // Create the configuration parameter to connect the HBase.
+
     SparkConf conf = new SparkConf().setAppName("CollectFemaleInfo");
     JavaSparkContext jsc = new JavaSparkContext(conf);
+    // Create the configuration parameter to connect the HBase.
     Configuration hbConf = HBaseConfiguration.create(jsc.hadoopConfiguration());
 
     // Declare the information of the table.
     Table table = null;
-    String tableName = "shb1";
+    String tableName = "table2";
     byte[] familyName = Bytes.toBytes("info");
     Connection connection = null;
 
@@ -35,22 +37,22 @@ public class TableInputData {
       connection = ConnectionFactory.createConnection(hbConf);
       // Obtain the table object.
       table = connection.getTable(TableName.valueOf(tableName));
-      List<Tuple4<String, String, String, String>> data =
-          jsc.textFile(args[0]).map(new Function<String, Tuple4<String, String, String, String>>() {
-            public Tuple4<String, String, String, String> call(String s) throws Exception {
+      List<Tuple3<String, String, String>> data =
+          jsc.textFile(args[0]).map(new Function<String, Tuple3<String, String, String>>() {
+            public Tuple3<String, String, String> call(String s) throws Exception {
               String[] tokens = s.split(",");
 
-              return new Tuple4<String, String, String, String>(tokens[0], tokens[1], tokens[2], tokens[3]);
+              return new Tuple3<String, String, String>(tokens[0], tokens[1], tokens[2]);
             }
           }).collect();
 
       Integer i = 0;
-      for (Tuple4<String, String, String, String> line : data) {
+      //插入数据
+      for (Tuple3<String, String,String> line : data) {
         Put put = new Put(Bytes.toBytes("row" + i));
-        put.addColumn(familyName, Bytes.toBytes("c11"), Bytes.toBytes(line._1()));
-        put.addColumn(familyName, Bytes.toBytes("c12"), Bytes.toBytes(line._2()));
-        put.addColumn(familyName, Bytes.toBytes("c13"), Bytes.toBytes(line._3()));
-        put.addColumn(familyName, Bytes.toBytes("c14"), Bytes.toBytes(line._4()));
+        put.addColumn(familyName, Bytes.toBytes("姓名"), Bytes.toBytes(line._1()));
+        put.addColumn(familyName, Bytes.toBytes("性别"), Bytes.toBytes(line._2()));
+        put.addColumn(familyName, Bytes.toBytes("上网时长"), Bytes.toBytes(line._3()));
         i += 1;
         table.put(put);
       }

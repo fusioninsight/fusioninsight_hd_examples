@@ -62,9 +62,9 @@ public class KafkaStreaming {
     public static void main(String[] args)throws Exception {
         Configuration conf = HBaseConfiguration.create();
         //加载HDFS/HBase服务端配置，用于客户端与服务端对接
-        conf.addResource(new Path(KafkaStreaming.class.getClassLoader().getResource("core-site.xml").getPath()), false);
-        conf.addResource(new Path(KafkaStreaming.class.getClassLoader().getResource("hdfs-site.xml").getPath()), false);
-        conf.addResource(new Path(KafkaStreaming.class.getClassLoader().getResource("hbase-site.xml").getPath()), false);
+        conf.addResource(new Path(KafkaStreaming.class.getClassLoader().getResource("core-site.xml").getPath()));
+        conf.addResource(new Path(KafkaStreaming.class.getClassLoader().getResource("hdfs-site.xml").getPath()));
+        conf.addResource(new Path(KafkaStreaming.class.getClassLoader().getResource("hbase-site.xml").getPath()));
         //安全模式需要，普通模式可以删除s
         String krb5Conf =  KafkaStreaming.class.getClassLoader().getResource("krb5.conf").getPath();
         String keyTab = KafkaStreaming.class.getClassLoader().getResource("user.keytab").getPath();
@@ -84,6 +84,7 @@ public class KafkaStreaming {
         //加载spark配置
         //创建一个Streaming启动环境。
         SparkConf sparkConf = new SparkConf().setAppName("KafkaToESAndHBase").setMaster("local[2]");
+        sparkConf.set("spark.testing.memory", "2147480000");
         //streaming上下文，每隔多少秒执行一次获取批量数据然后处理这些数据
         JavaStreamingContext jsc = new JavaStreamingContext(sparkConf, new Duration(Long.parseLong(batchTime) * 1000));
         //为Streaming配置CheckPoint目录。它将足够多的信息checkpoint到某些具备容错性的存储系统如hdfs上，以便出错时能够迅速恢复
@@ -153,7 +154,6 @@ public class KafkaStreaming {
 
         //从Kafka接收数据并生成相应的DStream( DStream操作最终会转换成底层的RDD的操作)
         JavaInputDStream<ConsumerRecord<String, String>> messages = KafkaUtils.createDirectStream(jsc, locationStrategy, consumerStrategy);
-
         messages.foreachRDD(
             new VoidFunction<JavaRDD<ConsumerRecord<String, String>>>() {
                 @Override

@@ -83,6 +83,11 @@
         <directory>target</directory>
         <outputDirectory>target/classes</outputDirectory>
         <testOutputDirectory>target/test-classes</testOutputDirectory>
+        <resources>
+            <resource>
+                <directory>src/resources</directory>
+            </resource>
+        </resources>
         <sourceDirectory>src</sourceDirectory>
     </build>
 </project>

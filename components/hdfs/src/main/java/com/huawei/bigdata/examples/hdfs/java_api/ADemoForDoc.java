@@ -1,4 +1,4 @@
-/*
+﻿/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -45,25 +45,23 @@ public class ADemoForDoc {
     final String DIR_PATH = "/user/hdfs-examples"; //HDFS上的目标目录
     final String FILE_PATH = DIR_PATH + File.separator + "test.txt";
 
-    //加载core-site.xml/hdfs-site.xml配置文件
-       Configuration conf = new Configuration();
 
-    //加载HDFS服务端配置，包含客户端与服务端对接配置
-    conf.addResource(new Path(ADemoForDoc.class.getClassLoader().getResource("conf/hdfs-site.xml").getPath()));
-    conf.addResource(new Path(ADemoForDoc.class.getClassLoader().getResource("conf/core-site.xml").getPath()));
 
     //需要修改方法中的PRNCIPAL_NAME（用户名）
     //安全模式需要进行kerberos认证，只在系统启动时执行一次。非安全模式可以删除
-    if ("kerberos".equalsIgnoreCase(conf.get("hadoop.security.authentication")))
-    {
+ 
       //认证相关，安全模式需要，普通模式可以删除
       String PRNCIPAL_NAME = "TestUserPuser";//需要修改为实际在manager添加的用户
       String KRB5_CONF = ADemoForDoc.class.getClassLoader().getResource("conf/krb5.conf").getPath();
       String KEY_TAB = ADemoForDoc.class.getClassLoader().getResource("conf/user.keytab").getPath();
-
       System.setProperty("java.security.krb5.conf", KRB5_CONF); //指定kerberos配置文件到JVM
+     //加载core-site.xml/hdfs-site.xml配置文件
+       Configuration conf = new Configuration();
+    //加载HDFS服务端配置，包含客户端与服务端对接配置
+      conf.addResource(new Path(ADemoForDoc.class.getClassLoader().getResource("conf/hdfs-site.xml").getPath()));
+      conf.addResource(new Path(ADemoForDoc.class.getClassLoader().getResource("conf/core-site.xml").getPath()));
       LoginUtil.login(PRNCIPAL_NAME, KEY_TAB, KRB5_CONF, conf);
-    }
+   
 
     //根据配置文件创建FileSystem对象，FileSystem是hadoop定义的一个通用文件系统的接口类
     //这是个抽象类，只能通过静态工厂方法get到。

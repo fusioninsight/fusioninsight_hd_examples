@@ -39,7 +39,7 @@ object ElkConnection
     try {
       stmt = conn.createStatement()
       //执行SQL语句。
-      val rc = stmt.executeUpdate(sqlText)
+      val rc: Int = stmt.executeUpdate(sqlText)
       stmt.close
     } catch {
       case e: SQLException =>

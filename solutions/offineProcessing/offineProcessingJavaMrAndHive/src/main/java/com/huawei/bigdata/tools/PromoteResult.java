@@ -17,9 +17,8 @@ public class PromoteResult {
     }
     @Override
     public String toString() {
-        return "InfoBean [userName=" + userName + ", produce=" + produce +"]";
+        return "userName=" + userName + ", produce=" + produce;
     }
-
     public String getUserName() {
         return userName;
     }

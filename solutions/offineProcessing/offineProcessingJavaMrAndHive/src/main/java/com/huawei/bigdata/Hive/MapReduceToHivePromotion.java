@@ -52,72 +52,71 @@ public class MapReduceToHivePromotion {
         }
     }
     public static class PromotionReducer extends Reducer<Text,PromoteUsersInfo,PromoteUsersInfo, NullWritable>
-        {
+    {
 
-            protected void reduce(Text userId, Iterable<PromoteUsersInfo> promoteUsersInfos,Context context) throws IOException,InterruptedException
+        protected void reduce(Text userId, Iterable<PromoteUsersInfo> promoteUsersInfos,Context context) throws IOException,InterruptedException
+        {
+            PromoteUsersInfo regitBean = new PromoteUsersInfo();
+            ArrayList<PromoteUsersInfo> promoteBeans = new ArrayList<PromoteUsersInfo>();
+            for(PromoteUsersInfo infobean : promoteUsersInfos)
             {
-                PromoteUsersInfo regitBean = new PromoteUsersInfo();
-                ArrayList<PromoteUsersInfo> promoteBeans = new ArrayList<PromoteUsersInfo>();
-                for(PromoteUsersInfo infobean : promoteUsersInfos)
+                if(infobean.getFlag()==1)
                 {
-                    if(infobean.getFlag()==1)
+                    try
                     {
-                        try
-                        {
-                            BeanUtils.copyProperties(regitBean, infobean);
-                        }catch (Exception e)
-                        {
-                            e.printStackTrace();
-                        }
-                    }else
+                        BeanUtils.copyProperties(regitBean, infobean);
+                    }catch (Exception e)
                     {
-                        PromoteUsersInfo viewBean = new PromoteUsersInfo();
-                        try
-                        {
-                            BeanUtils.copyProperties(viewBean,infobean);
-                            promoteBeans.add(viewBean);
-                        }catch (Exception e)
-                        {
-                            e.printStackTrace();
-                        }
+                        e.printStackTrace();
+                    }
+                }else
+                {
+                    PromoteUsersInfo viewBean = new PromoteUsersInfo();
+                    try
+                    {
+                        BeanUtils.copyProperties(viewBean,infobean);
+                        promoteBeans.add(viewBean);
+                    }catch (Exception e)
+                    {
+                        e.printStackTrace();
                     }
                 }
+            }
 
-                for(PromoteUsersInfo bean : promoteBeans)
-                {
-                    bean.setUserName(regitBean.getUserName());
-                    bean.setRegistrationDate(regitBean.getRegistrationDate());
-                    context.write(bean,NullWritable.get());
-                }
+            for(PromoteUsersInfo bean : promoteBeans)
+            {
+                bean.setUserName(regitBean.getUserName());
+                bean.setRegistrationDate(regitBean.getRegistrationDate());
+                context.write(bean,NullWritable.get());
             }
         }
-    public static class PromotionfilterMapper extends Mapper<Object, Text, IntWritable, PromoteResult>
+    }
+    public static class PromotionfilterMapper extends Mapper<Object, Text, Text, Text>
     {
-        PromoteResult bean = new PromoteResult();
-        IntWritable userId = new IntWritable();
+        Text bean = new Text();
+        Text userId = new Text();
         public void map(Object key ,Text value, Context context) throws IOException,InterruptedException
         {
             String line = value.toString();
             String[] data = line.split(",");
-           bean.set(data[1],data[4]);
-           userId.set(Integer.parseInt(data[0]));
+            bean.set(data[1]+","+data[3]);
+            userId.set(data[0]);
             context.write(userId,bean);
 
         }
     }
-    public static class PromotionfilterReducer extends Reducer<IntWritable,PromoteResult,PromoteResult,NullWritable>
+    public static class PromotionfilterReducer extends Reducer<Text,Text,Text,NullWritable>
     {
-        public void reduce(IntWritable key,Iterable<PromoteResult> beans,Context context) throws IOException,InterruptedException
+        Text text = new Text();
+        public void reduce(Text key,Iterable<Text> beans,Context context) throws IOException,InterruptedException
         {
-            PromoteResult bean = new PromoteResult();
-            ArrayList<PromoteResult> PromoteResults = new ArrayList<PromoteResult>();
             int sum =0;
-            for(PromoteResult promoteResult : beans)
+            for(Text t : beans)
             {
-                sum = sum++;
-                if (sum>=10)
-                {
-                    context.write(promoteResult,NullWritable.get());
+                sum = sum+1;
+                if (sum>=2) {
+                    text.set(key + "," + t);
+                    context.write(text, NullWritable.get());
                 }
             }
 
@@ -229,7 +228,7 @@ public class MapReduceToHivePromotion {
 
         }
     }
-    public static class ResultReduce extends Reducer<Text,Text,Text,IntWritable>
+    public static class ResultReduce extends Reducer<Text,Text,Text,NullWritable>
     {
         int filterMoney;
         private IntWritable result = new IntWritable();
@@ -246,17 +245,49 @@ public class MapReduceToHivePromotion {
                 sum += numble;
 
             }
-             if(sum < filterMoney)
-             {
-                 return;
-             }
-             result.set(sum);
-             text.set(text.toString()+","+userName);
-             context.write(text,result);
+            if(sum < filterMoney)
+            {
+                return;
+            }
+            result.set(sum);
+            text.set(text.toString()+","+userName+","+sum);
+            context.write(text,NullWritable.get());
         }
         public void setup(Context context)throws IOException,InterruptedException
         {
             filterMoney=context.getConfiguration().getInt("log.time.filterMoney",4000);
+        }
+    }
+    public static class Reduce extends Reducer<Text,Text,Text,NullWritable> {
+        int filterMoney;
+        private IntWritable result = new IntWritable();
+        private String username = new String();
+        double money;
+
+        public void reduce(Text text, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+            int sum = 0;
+            String userName = null;
+            for (Text val : values) {
+                String[] data = val.toString().split(",");
+                int numble = Integer.parseInt(data[1]);
+                userName = data[0];
+                sum += numble;
+
+            }
+            if (sum < filterMoney) {
+                money = sum *0.2;
+               if(money<10)
+               {
+                money =10;
+               }
+               text.set(text+","+userName+","+sum+","+money);
+               context.write(text,NullWritable.get());
+            }
+
+        }
+
+        public void setup(Context context) throws IOException, InterruptedException {
+            filterMoney = context.getConfiguration().getInt("log.time.filterMoney", 1000);
         }
     }
 

@@ -32,7 +32,7 @@ public class SparkHivetoHbase {
     //Spark SQL执行引擎的一个实例，它与存储在Hive中的数据集成在一起。从类路径上的hive-site.xml读取Hive的配置。
     HiveContext sqlContext = new org.apache.spark.sql.hive.HiveContext(jsc);
     //Sparksql对象，用于操作Sparksql
-    DataFrame dataFrame = sqlContext.sql("select name, account from person");
+    DataFrame dataFrame = sqlContext.sql("select name, account from goldusers");
 
     //遍历hive表中的每个分区并更新hbase表
     //少量数据使用forreach()
@@ -55,7 +55,7 @@ public class SparkHivetoHbase {
   private static void hBaseWriter(Iterator<Row> iterator) throws IOException {
     // read hbase
     String tableName = "table2";
-    String columnFamily = "cf";
+    String columnFamily = "info";
     Configuration conf = HBaseConfiguration.create();//使用HBase资源创建配置
     Connection connection = null;
     Table table = null;
@@ -84,17 +84,21 @@ public class SparkHivetoHbase {
         //判空
         if (!resultData.isEmpty()) {
           // 获得hive的数据
-          int hiveValue = table1List.get(i).getInt(1);
+//          int hiveValue = table1List.get(i).getInt(1);
+//
+//          // // 通过列族和修饰符去获得hive的值
+//          String hbaseValue = Bytes.toString(resultData.getValue(columnFamily.getBytes(), "".getBytes()));
+//          //对象进行put操作，必须首先实例化put。
+//          Put put = new Put(table1List.get(i).getString(0).getBytes());
+//
+//           //计算结果值
+//          int resultValue = hiveValue + Integer.valueOf(hbaseValue);
+//
+//          //设置数据
 
-          // // 通过列族和修饰符去获得hive的值
-          String hbaseValue = Bytes.toString(resultData.getValue(columnFamily.getBytes(), "cid".getBytes()));
-          //对象进行put操作，必须首先实例化put。
-          Put put = new Put(table1List.get(i).getString(0).getBytes());
+          for(){
 
-           //计算结果值
-          int resultValue = hiveValue + Integer.valueOf(hbaseValue);
-
-          //设置数据
+          }
           put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes("cid"), Bytes.toBytes(String.valueOf(resultValue)));
           putList.add(put);
         }

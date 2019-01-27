@@ -13,6 +13,10 @@
         <value>/zwl/glodresult</value>
     </property>
     <property>
+        <name>offer.client.mapred.output.result</name>
+        <value>/zwl/offerInfo</value>
+    </property>
+    <property>
         <name>promoteUser.client.mapred.output</name>
         <value>/zwl/promoteoutput/</value>
     </property>

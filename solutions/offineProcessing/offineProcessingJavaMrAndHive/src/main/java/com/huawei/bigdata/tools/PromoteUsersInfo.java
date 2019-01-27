@@ -29,8 +29,8 @@ public PromoteUsersInfo(){}
     }
     @Override
     public String toString() {
-        return "InfoBean [userId=" + userId + ", userName=" + userName + ", registrationDate=" + registrationDate
-                + ", produce=" + produce + ", time=" + time + ", viewDate=" + viewDate +",flag="+flag+"]";
+        return "userId=" + userId + ", userName=" + userName + ", registrationDate=" + registrationDate
+                + ", produce=" + produce + ", time=" + time + ", viewDate=" + viewDate +",flag="+flag;
     }
     public int getUserId() {
         return userId;

@@ -56,7 +56,7 @@
 		</profile>
 
 	</profiles>
-	<proxies>
+	<!--<proxies>
 		<proxy>
 			<id>optional</id>
 			<active>true</active>
@@ -67,7 +67,7 @@
 			<port>8080</port>
 			<nonProxyHosts>local.host|127.0.0.1|*.huawei.com|100.126.29.18|100.112.77.54</nonProxyHosts>
 		</proxy>
-	</proxies>
+	</proxies>-->
 	<activeProfiles>
 		<activeProfile>turmeric</activeProfile>
 	</activeProfiles>

@@ -34,14 +34,16 @@ public class SparkToSparkSQL
     public static void main(String[] args) throws Exception
     {
         //用于认证和连接HDFS，如果打包的话，可以删除这个方法
-//        UserLogin();
+        UserLogin();
 
         //创建一个对象用来操作Spark。Spark2.0以后，用SparkSession代替了SparkConf和SparkContext
         //appName是设置应用的名字，方便在Yarn上查找到。
         //master是指定运行方式，如果采用cluster,要删除master,不然报错。
         //如果需要在windows环境上测试，需要加上master如下：
-        //SparkSession spark = SparkSession.builder().appName("spark core").master("local").getOrCreate();
-        SparkSession spark = SparkSession.builder().appName("spark core").getOrCreate();
+        //config("spark.testing.memory", "2147480000") 设置本地机器的内存
+        SparkSession spark = SparkSession.builder().appName("spark core").master("local").config("spark.testing.memory", "2147480000").getOrCreate();
+        //如果打包放到服务器上运行，注释到上面的SparkSession，用下面的SparkSession
+//        SparkSession spark = SparkSession.builder().appName("spark core").getOrCreate();
         //从HDFS上读取文件，路径为HDFS上的路径
         Dataset dealDataRDD = spark.read().textFile("/hacluster/myfile/shooppingTable.txt");//购物数据:用户ID、商品名称、商品分类、商品金额、购物日期
         String path1 = "/hacluster/myfile/userTable.txt";//HDFS上的位置

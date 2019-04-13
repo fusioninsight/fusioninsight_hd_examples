@@ -47,7 +47,7 @@ public class ColocationExample
     {
         conf.set(KEYTAB, PATH_TO_KEYTAB);
         conf.set(PRINCIPAL, PRNCIPAL_NAME);
-
+        //setJaasConf()方法：构造连接ZooKeeper组件所需Jaas配置信息对象并将其设置到内存中
         LoginUtil.setJaasConf(LOGIN_CONTEXT_NAME, PRNCIPAL_NAME, PATH_TO_KEYTAB);
         LoginUtil.setZookeeperServerPrincipal(ZOOKEEPER_SERVER_PRINCIPAL_KEY, ZOOKEEPER_DEFAULT_SERVER_PRINCIPAL);
         LoginUtil.login(PRNCIPAL_NAME, PATH_TO_KEYTAB, PATH_TO_KRB5_CONF, conf);

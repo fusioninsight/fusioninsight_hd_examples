@@ -59,9 +59,8 @@ public class SimpleJDBCTopology
         hikariConfigMap.put("dataSource.serverName", JDBC_SERVER_NAME);
         hikariConfigMap.put("dataSource.portNumber", JDBC_PORT_NUM);
         hikariConfigMap.put("dataSource.databaseName", JDBC_BASE_TBL);
-		//derby 示例example数据库不需要配置用户名密码
-//        hikariConfigMap.put("dataSource.user", JDBC_USER_NAME);
-//        hikariConfigMap.put("dataSource.password", JDBC_PASSWORD);
+        hikariConfigMap.put("dataSource.user", JDBC_USER_NAME);
+        hikariConfigMap.put("dataSource.password", JDBC_PASSWORD);
         hikariConfigMap.put("connectionTestQuery", "select COUNT from " + JDBC_INSERT_TBL);
         
         Config conf = new Config();

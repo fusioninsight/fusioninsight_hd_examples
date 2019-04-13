@@ -24,6 +24,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
+/*
+请使用HbaseSearch类 代替 此类（HbaseQuery） 进行HBASE查询；
+此类演示spark结合HBase两个组件做查询操作，本场景样例中没必要使用此类，即将废弃；
+ */
 public class HbaseQuery {
     private static final String ZOOKEEPER_DEFAULT_SERVER_PRINCIPAL = "zookeeper/hadoop.hadoop.com";
     private static Properties properties = new Properties();

@@ -3,10 +3,17 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>components</artifactId>
+        <groupId>com.huawei.bigdata</groupId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../../../pom.xml</relativePath>
+    </parent>
     <groupId>com.huawei.bigdata.spark.examples</groupId>
     <artifactId>SparkLauncherExample</artifactId>
     <version>1.0</version>
-    <name>SparkLauncherExample</name>
+    <name>components/spark/spark-examples-normal/SparkLauncherScalaExample</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -16,7 +23,7 @@
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-launcher_2.10</artifactId>
-            <version>1.5.1</version>
+            <!--<version>1.5.1</version>-->
             <exclusions>
                 <exclusion>
                     <groupId>org.tachyonproject</groupId>

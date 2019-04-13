@@ -3,10 +3,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>components</artifactId>
+        <groupId>com.huawei.bigdata</groupId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
     <groupId>com.huawei.spark.examples</groupId>
-    <artifactId>SparkStreamingKafka010Example</artifactId>
+    <artifactId>Spark2xStreamingKafka010ScalaExample</artifactId>
     <version>1.0</version>
-    <name>SparkStreamingKafka010Example</name>
+    <name>components/spark2x/SparkStreamingKafka010ScalaExample</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -17,7 +23,7 @@
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_2.11</artifactId>
-            <version>2.1.0</version>
+            <!--<version>2.1.0</version>-->
             <exclusions>
                 <exclusion>
                     <groupId>org.tachyonproject</groupId>
@@ -36,12 +42,12 @@
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-streaming_2.11</artifactId>
-            <version>2.1.0</version>
+            <!--<version>2.1.0</version>-->
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-streaming-kafka-0-10_2.11</artifactId>
-            <version>2.1.0</version>
+            <!--<version>2.1.0</version>-->
         </dependency>
     </dependencies>
 

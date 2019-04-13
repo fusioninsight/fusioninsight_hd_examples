@@ -3,16 +3,26 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>components</artifactId>
+        <groupId>com.huawei.bigdata</groupId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../../../pom.xml</relativePath>
+    </parent>
     <groupId>com.huawei.fiber.examples</groupId>
-    <artifactId>FemaleInfoCollection</artifactId>
-    <version>1.0</version>
-    <name>FemaleInfoCollection</name>
-
+    <artifactId>FiberJDBCScalaExample</artifactId>
+    <name>components/fiber-example-security/FiberJDBCScalaExample</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
+        <!-- https://mvnrepository.com/artifact/org.scala-lang/scala-compiler -->
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-compiler</artifactId>
+            <version>2.11.11</version>
+        </dependency>
 
     </dependencies>
 

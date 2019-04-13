@@ -56,18 +56,20 @@
 		</profile>
 
 	</profiles>
-	<!--<proxies>
+    <!-- 根据自己实际使用的代理服务器进行配置
+	<proxies>
 		<proxy>
 			<id>optional</id>
 			<active>true</active>
 			<protocol>http</protocol>
 			<username>账号</username>
 			<password>密码</password>
-			<host>proxy.huawei.com</host>
-			<port>8080</port>
-			<nonProxyHosts>local.host|127.0.0.1|*.huawei.com|100.126.29.18|100.112.77.54</nonProxyHosts>
+			<host>代理服务器地址</host>
+			<port>代理服务端口</port>
+			<nonProxyHosts>local.host|127.0.0.1</nonProxyHosts>
 		</proxy>
-	</proxies>-->
+	</proxies>
+    -->
 	<activeProfiles>
 		<activeProfile>turmeric</activeProfile>
 	</activeProfiles>

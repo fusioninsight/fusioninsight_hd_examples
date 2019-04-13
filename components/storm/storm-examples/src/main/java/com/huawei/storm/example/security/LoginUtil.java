@@ -131,7 +131,7 @@ public class LoginUtil
     /**
      * 写入jaas文件
      * 
-     * @throws java.io.IOException
+     * @throws IOException
      *             写文件异常
      */
     private static void writeJaasFile(String jaasPath, String principal, String keytabPath)

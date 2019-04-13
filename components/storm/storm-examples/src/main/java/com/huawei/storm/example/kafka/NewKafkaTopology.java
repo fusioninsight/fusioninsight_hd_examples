@@ -11,15 +11,18 @@ import org.apache.storm.kafka.spout.KafkaSpoutRetryExponentialBackoff.TimeInterv
 
 import com.huawei.storm.example.common.SplitSentenceBolt;
 
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
-import static org.apache.storm.kafka.spout.KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST;
+import org.apache.storm.tuple.Values;
+
+import static org.apache.storm.kafka.spout.KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST ;
 
 /**
  * 实现kafkaConsumer->split->count->kafkaProducer逻辑的示例拓扑
- * 本例中kafkaConsumer和kafkaProducer使用kafka 0.9.0的new consumer和new producer
+ * 本例中kafkaConsumer和kafkaProducer使用kafka 0.11.0.1 的new consumer和new producer
  * 本例中KAFKA_BROKER_LIST配置项必须根据具体情况手动配置，其余配置项可选择性配置
  */
 public class NewKafkaTopology {
@@ -126,8 +129,7 @@ public class NewKafkaTopology {
         }
 
         // 定义KafkaSpout
-        KafkaSpout kafkaSpout = new KafkaSpout<String, String>(
-                getKafkaSpoutConfig(getKafkaSpoutStreams()));
+        KafkaSpout kafkaSpout = new KafkaSpout<>(getKafkaSpoutConfig());
 
         // CountBolt
         CountBolt countBolt = new CountBolt();
@@ -147,7 +149,7 @@ public class NewKafkaTopology {
         builder.setBolt("split-bolt", splitBolt,10).shuffleGrouping("kafka-spout", STREAMS[0]);
         builder.setBolt("count-bolt", countBolt, 10).fieldsGrouping(
                 "split-bolt", new Fields("word"));
-        builder.setBolt("kafka-bolt", kafkaBolt, 10).shuffleGrouping("count-bolt");
+        builder.setBolt("kafka-bolt",kafkaBolt,10).shuffleGrouping("count-bolt");
 
         // 命令行提交拓扑
         StormSubmitter.submitTopology(args[0], conf, builder.createTopology());
@@ -162,20 +164,27 @@ public class NewKafkaTopology {
         conf.put(Config.TOPOLOGY_AUTO_CREDENTIALS, auto_tgts);
     }
 
-    private static KafkaSpoutConfig<String, String> getKafkaSpoutConfig(
-            KafkaSpoutStreams kafkaSpoutStreams) {
-        return new KafkaSpoutConfig.Builder<String, String>(
-                getKafkaConsumerProps(), kafkaSpoutStreams, getTuplesBuilder(),
-                getRetryService())
+    private static KafkaSpoutConfig<String, String> getKafkaSpoutConfig() {
+        ByTopicRecordTranslator<String, String> trans = new ByTopicRecordTranslator<>(TOPIC_PART_OFF_KEY_VALUE_FUNC,
+                new Fields("value", "topic", "partition", "offset","key"), STREAMS[0]);
+        return KafkaSpoutConfig.builder(KAFKA_BROKER_LIST, INPUT_TOPICS)
+                .setRetry(getRetryService())
                 .setOffsetCommitPeriodMs(DEFAULT_OFFSET_COMMIT_PERIOD_MS)
                 .setFirstPollOffsetStrategy(DEFAULT_STRATEGY)
                 .setMaxUncommittedOffsets(DEFAULT_MAX_UNCOMMIT_OFFSET_NUM)
-                .build();
+                .setRecordTranslator(trans)
+                .setProp(getKafkaConsumerProps()).build();
     }
+
+    public static Func<ConsumerRecord<String, String>, List<Object>> TOPIC_PART_OFF_KEY_VALUE_FUNC = new Func<ConsumerRecord<String, String>, List<Object>>() {
+        @Override
+        public List<Object> apply(ConsumerRecord<String, String> r) {
+            return new Values(r.value(),r.topic(), r.partition(), r.offset(), r.key());
+        }
+    };
 
     private static Map<String, Object> getKafkaConsumerProps() {
         Map<String, Object> props = new HashMap<String, Object>();
-        props.put(BOOTSTRAP_SERVERS, KAFKA_BROKER_LIST);
         props.put(GROUP_ID, DEFAULT_GROUP_ID);
         props.put(SASL_KERBEROS_SERVICE_NAME, DEFAULT_SERVICE_NAME);
         props.put(SECURITY_PROTOCOL, DEFAULT_SECURITY_PROTOCOL);
@@ -184,7 +193,7 @@ public class NewKafkaTopology {
         props.put(KERBEROS_DOMAIN_NAME, DEFAULT_KERBEROS_DOMAIN_NAME);
         return props;
     }
-
+    
     private static Properties getKafkaProducerProps() {
         Properties props = new Properties();
         props.put(BOOTSTRAP_SERVERS, KAFKA_BROKER_LIST);
@@ -197,39 +206,16 @@ public class NewKafkaTopology {
     }
 
     /**
-     * 构造KafkaSpoutTuplesBuilder，用于从ConsumerRecords中构造tuples
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    private static KafkaSpoutTuplesBuilder<String, String> getTuplesBuilder() {
-        return new KafkaSpoutTuplesBuilderNamedTopics.Builder<String, String>(
-                new TopicsTupleBuilder<String, String>(INPUT_TOPICS[0])).build();
-    }
-
-    /**
      * 构造KafkaSpoutRetryService，用于管理并重试发送失败的tuples
      * @return
      */
     private static KafkaSpoutRetryService getRetryService() {
-        return new KafkaSpoutRetryExponentialBackoff(getTimeInterval(
-                DEFAULT_DELAY, TimeUnit.MICROSECONDS),
-                TimeInterval.milliSeconds(DEFAULT_DELAY_PERIOD),
-                DEFAULT_MAX_RETRY_TIMES,
+        return new KafkaSpoutRetryExponentialBackoff(getTimeInterval(DEFAULT_DELAY, TimeUnit.MICROSECONDS),
+                TimeInterval.milliSeconds(DEFAULT_DELAY_PERIOD), DEFAULT_MAX_RETRY_TIMES,
                 TimeInterval.seconds(DEFAULT_MAX_DELAY));
     }
 
     private static TimeInterval getTimeInterval(long delay, TimeUnit timeUnit) {
         return new TimeInterval(delay, timeUnit);
-    }
-
-    /**
-     * 构造KafkaSpoutStreams，用于定义并添加stream
-     * @return
-     */
-    private static KafkaSpoutStreams getKafkaSpoutStreams() {
-        final Fields outputFields = new Fields("value", "topic", "partition", "offset",
-                "key");
-        return new KafkaSpoutStreamsNamedTopics.Builder(outputFields, STREAMS[0],
-                new String[] { INPUT_TOPICS[0] }).build();
     }
 }

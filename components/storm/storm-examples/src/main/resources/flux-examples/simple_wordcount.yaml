@@ -5,7 +5,7 @@ config:
   
 spouts: 
   - id: "spout"
-    className: "com.huawei.storm.example.common.RandomSentenceSpout"
+    className: "com.huawei.storm.example.common.WordSpout"
     parallelism: 1
 
 bolts:

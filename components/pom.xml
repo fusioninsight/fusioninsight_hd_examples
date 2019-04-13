@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>HD</artifactId>
+        <groupId>com.huawei.bigdata</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
+    <artifactId>components</artifactId>
+
+    <modules>
+
+        <!-- elasticsearch -->
+        <module>elasticsearch/ElasticsearchBasicExample</module>
+        <module>elasticsearch/ElasticsearchRestClientMultithreadExample</module>
+
+
+        <!-- fiber -->
+        <module>fiber/fiber-example-security/FiberJDBCJavaExample</module>
+        <module>fiber/fiber-example-security/FiberJDBCScalaExample</module>
+
+        <!-- flink -->
+        <module>flink/flink-examples-maven-security/FlinkCheckpointJavaExample</module>
+        <module>flink/flink-examples-maven-security/FlinkCheckpointScalaExample</module>
+        <module>flink/flink-examples-maven-security/FlinkConfigtableJavaExample</module>
+        <module>flink/flink-examples-maven-security/FlinkConfigtableScalaExample</module>
+        <module>flink/flink-examples-maven-security/FlinkKafkaJavaExample</module>
+        <module>flink/flink-examples-maven-security/FlinkKafkaScalaExample</module>
+        <module>flink/flink-examples-maven-security/FlinkPipelineJavaExample</module>
+        <module>flink/flink-examples-maven-security/FlinkPipelineScalaExample</module>
+        <module>flink/flink-examples-maven-security/FlinkStreamJavaExample</module>
+        <module>flink/flink-examples-maven-security/FlinkStreamScalaExample</module>
+
+        <module>flink/flink-examples-maven-security/FlinkStreamSQLJavaExample</module>
+		<module>flink/flink-examples-maven-security/FlinkCEPSQLJavaExample</module>
+
+        <!-- hbase -->
+        <module>hbase/hbase-basic-examples-maven-security</module>
+        <module>hbase/hbase-multi-cluster-maven-security</module>
+        <module>hbase/hbase-multi-components-maven-security</module>
+        <module>hbase/hbase-zk-example-maven-security</module>
+
+        <!--&lt;!&ndash; hdfs &ndash;&gt;-->
+        <module>hdfs/HDFSToBasicSkills</module>
+        <module>hdfs/HDFSToColocation</module>
+        <module>hdfs/HDFSToMultiThread</module>
+        <!--&lt;!&ndash; hive &ndash;&gt;-->
+        <module>hive/hcatalog-example-maven-security</module>
+        <module>hive/hive-jdbc-example-maven-security</module>
+        <module>hive/hive-jdbc-multizk-example-maven-security</module>
+
+        <!-- kafka -->
+        <module>kafka/kafka-basic-example-maven-security</module>
+        <module>kafka/kafka-Multithread-example-maven-security</module>
+        <module>kafka/kafka-newAPI-example-maven-security</module>
+
+        <!-- loader -->
+        <module>loader/loader-basic-example-maven</module>
+
+        <!-- manager -->
+        <module>manager/AManagerDemoForDoc</module>
+
+        <!-- mapreduce **-->
+        <module>mapreduce/mapreduce-basic-maven-example-security</module>
+        <module>mapreduce/mapreduce-multi-components-example</module>
+        <module>mapreduce/mapreduce-to-solr-example</module>
+
+        <!-- oozie -->
+        <module>oozie/OozieBasicExample</module>
+        <module>oozie/OozieMultiComponentsExample</module>
+
+        <!-- redis -->
+        <module>redis/RedisBasicExample</module>
+
+        <!--&lt;!&ndash;&lt;!&ndash; solr &ndash;&gt;&ndash;&gt;-->
+        <module>solr/solr-example-maven-security</module>
+
+         <!--&lt;!&ndash;spark &ndash;&gt;-->
+        <module>spark/SparkHbasetoHbaseJavaExample</module>
+        <module>spark/SparkHbasetoHbasePythonExample</module>
+        <module>spark/SparkHbasetoHbaseScalaExample</module>
+        <module>spark/SparkHivetoHbaseJavaExample</module>
+        <module>spark/SparkHivetoHbasePythonExample</module>
+        <module>spark/SparkHivetoHbaseScalaExample</module>
+        <module>spark/SparkJavaExample</module>
+        <module>spark/SparkLauncherJavaExample</module>
+        <module>spark/SparkLauncherScalaExample</module>
+        <module>spark/SparkOnHbaseJavaExample</module>
+        <module>spark/SparkOnHbasePythonExample</module>
+        <module>spark/SparkOnHbaseScalaExample</module>
+        <module>spark/SparkScalaExample</module>
+        <module>spark/SparkSQLJavaExample</module>
+        <module>spark/SparkSQLScalaExample</module>
+        <module>spark/SparkStreamingJavaExample</module>
+        <module>spark/SparkStreamingPythonExample</module>
+        <module>spark/SparkStreamingScalaExample</module>
+        <module>spark/SparkStreamingtoHbaseJavaExample</module>
+        <module>spark/SparkStreamingtoHbasePythonExample</module>
+        <module>spark/SparkStreamingtoHbaseScalaExample</module>
+        <module>spark/SparkThriftServerJavaExample</module>
+        <module>spark/SparkThriftServerScalaExample</module>
+        <module>spark/SparkToEsJavaExample</module>
+
+         <!--&lt;!&ndash;spark2x&ndash;&gt;-->
+        <module>spark2x/SparkHbasetoHbaseJavaExample</module>
+        <module>spark2x/SparkHbasetoHbasePythonExample</module>
+        <module>spark2x/SparkHbasetoHbaseScalaExample</module>
+        <module>spark2x/SparkHivetoHbaseJavaExample</module>
+        <module>spark2x/SparkHivetoHbasePythonExample</module>
+        <module>spark2x/SparkHivetoHbaseScalaExample</module>
+        <module>spark2x/SparkJavaExample</module>
+        <module>spark2x/SparkLauncherJavaExample</module>
+        <module>spark2x/SparkLauncherScalaExample</module>
+        <module>spark2x/SparkOnHbaseJavaExample</module>
+        <module>spark2x/SparkOnHbasePythonExample</module>
+        <module>spark2x/SparkOnHbaseScalaExample</module>
+        <module>spark2x/SparkScalaExample</module>
+        <module>spark2x/SparkSQLJavaExample</module>
+        <module>spark2x/SparkSQLScalaExample</module>
+        <module>spark2x/SparkStreamingJavaExample</module>
+        <module>spark2x/SparkStreamingKafka010JavaExample</module>
+        <module>spark2x/SparkStreamingKafka010ScalaExample</module>
+        <module>spark2x/SparkStreamingPythonExample</module>
+        <module>spark2x/SparkStreamingScalaExample</module>
+        <module>spark2x/SparkStreamingtoHbaseJavaExample</module>
+        <module>spark2x/SparkStreamingtoHbasePythonExample</module>
+        <module>spark2x/SparkStreamingtoHbaseScalaExample</module>
+        <module>spark2x/SparkStructuredStreamingJavaExample</module>
+        <module>spark2x/SparkStructuredStreamingPythonExample</module>
+        <module>spark2x/SparkStructuredStreamingScalaExample</module>
+        <module>spark2x/SparkThriftServerJavaExample</module>
+        <module>spark2x/SparkThriftServerScalaExample</module>
+
+        <!--&lt;!&ndash; storm &ndash;&gt;-->
+        <module>storm/storm-examples</module>
+
+        <!-- yarn -->
+        <module>yarn/mapreduceToYarn</module>
+
+    </modules>
+
+</project>

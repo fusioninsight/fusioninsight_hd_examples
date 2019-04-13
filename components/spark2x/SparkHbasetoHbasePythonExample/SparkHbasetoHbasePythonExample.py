@@ -12,16 +12,16 @@ from pyspark.sql import SparkSession
 # 创建SparkSession，设置kryo序列化
 spark = SparkSession\
         .builder\
-        .appName("SparkHbasetoHbase") \
+        .appName("SparkHbasetoHbasePython") \
         .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer") \
-        .config("spark.kryo.registrator", "com.huawei.bigdata.spark.examples.MyRegistrator") \
+        .config("spark.kryo.registrator", "com.huawei.bigdata.spark.examples.MyRegistratorPython") \
         .getOrCreate()
 
 # 向sc._jvm中导入要运行的类
-java_import(spark._jvm, 'com.huawei.bigdata.spark.examples.SparkHbasetoHbase')
+java_import(spark._jvm, 'com.huawei.bigdata.spark.examples.SparkHbasetoHbasePython')
 
 # 创建类实例并调用方法
-spark._jvm.SparkHbasetoHbase().hbasetohbase(spark._jsc)
+spark._jvm.SparkHbasetoHbasePython().hbasetohbase(spark._jsc)
 
 # 停止SparkSession
 spark.stop()

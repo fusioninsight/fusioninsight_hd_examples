@@ -43,20 +43,12 @@ public class ProcessDataAndSinkToRedis
         System.out.println("<bootstrap.servers> is the ip:port list of brokers");
         System.out.println("******************************************************************************************");
 
-        //安全认证 redis为非安全模式可删除该部分
-        try {
-            System.setProperty("redis.authentication.jaas", "true");
-            if (System.getProperty("redis.authentication.jaas", "false").equals("true")) {
-                //需要把principal修改成自己的用户名
-                String principal = "my_fwc";
-                //需要从FI Manager 下载对应用户的认证凭据 解压后放入代码工程目录resources下
-                LoginUtil.setJaasFile(principal, getResource("user.keytab"));
-                LoginUtil.setKrb5Config(getResource("krb5.conf"));
-            }
-        } catch (IOException e) {
-            System.out.println("Failed to init security configuration"+e);
-            return;
-        }
+        LoginUtil.setJaasFile("my_fwc", "/srv/BigData/hadoop/data1/hadoop_client/Flink/flink/conf/user.keytab");
+        //将krb5.conf（链接KDC的配置文件）配置到JVM系统参数中
+        LoginUtil.setKrb5Config("/srv/BigData/hadoop/data1/hadoop_client/Flink/flink/conf/krb5.conf");
+        //配置ZK服务端principal到JVM系统参数中，访问ZK的时候认证使用
+        LoginUtil.setZookeeperServerPrincipal("zookeeper/hadoop.hadoop.com");
+
 
         //StreamExecutionEnvironment 执行流程序的上下文。环境提供了控制作业执行的方法（例如设置并行性或容错/检查点参数）以及与外部世界交互（数据访问）。
         // 构造执行环境,操作的并行度1
@@ -98,11 +90,29 @@ public class ProcessDataAndSinkToRedis
     private static class RedisSink extends
             RichSinkFunction<TransactionRecord> {
         private transient JedisCluster client;
-        private String redisKey = "RedisSinkTest";
+        private String redisKey = "RedisSinkTest1";
 
         //open方法是初始化方法,会在invoke方法之前执行,执行一次
         public void open(Configuration parameters)throws Exception
         {
+            //安全认证 redis为非安全模式可删除该部分
+            try {
+                System.setProperty("redis.authentication.jaas", "true");
+                if (System.getProperty("redis.authentication.jaas", "false").equals("true")) {
+                    //需要把principal修改成自己的用户名
+                    String principal = "my_fwc";
+                    //需要从FI Manager 下载对应用户的认证凭据 解压后放入代码工程目录resources下
+
+                    String keytabPath = "/srv/BigData/hadoop/data1/hadoop_client/Flink/flink/conf/user.keytab";
+                    String krb5Path = "/srv/BigData/hadoop/data1/hadoop_client/Flink/flink/conf/krb5.conf";
+                    LoginUtil.setJaasFile(principal, keytabPath);
+                    LoginUtil.setKrb5Config(krb5Path);
+                }
+            } catch (IOException e) {
+                System.out.println("Failed to init security configuration"+e);
+                return;
+            }
+
             super.open(parameters);
             if(client != null){
                 System.out.println("Redis already connected......");
@@ -126,10 +136,8 @@ public class ProcessDataAndSinkToRedis
         //实时更新数据，并获取打印显示
         public  void invoke(TransactionRecord transactionRecord, SinkFunction.Context context) throws Exception {
             try {
-
                 //给某商品transactionRecord.type的值加上一个增量transactionRecord.price
                 client.zincrby(redisKey,transactionRecord.price, transactionRecord.type);
-
                 //获取排行数据
                 Set<String> setValues = client.zrevrange(redisKey, 0, -1);
                 List<String> result = new ArrayList(setValues);
@@ -138,7 +146,6 @@ public class ProcessDataAndSinkToRedis
                     sb.append("Top" +(i+1)+ " : "+ result.get(i) + "-" + client.zscore(redisKey, result.get(i)) + "  ");
                 }
                 System.out.println(sb.toString());
-
             }catch (Exception e){
                 e.printStackTrace();
             }

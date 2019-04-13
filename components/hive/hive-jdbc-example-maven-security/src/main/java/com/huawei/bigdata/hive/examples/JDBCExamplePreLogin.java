@@ -23,10 +23,6 @@ public class JDBCExamplePreLogin
 
     private static final String ZOOKEEPER_DEFAULT_LOGIN_CONTEXT_NAME = "Client";
 
-    private static final String ZOOKEEPER_SERVER_PRINCIPAL_KEY = "zookeeper.server.principal";
-
-    private static final String ZOOKEEPER_DEFAULT_SERVER_PRINCIPAL = "zookeeper/hadoop";
-
     private static Configuration CONF = null;
 
     private static String KRB5_FILE = null;
@@ -46,7 +42,7 @@ public class JDBCExamplePreLogin
     private static String serviceDiscoveryMode = null;
 
     private static String principal = null;
-
+    private static  String hiveclientProp =null;
     private static void init() throws IOException
     {
         System.setProperty("java.security.auth.login.config","conf/jaas.conf");
@@ -60,7 +56,7 @@ public class JDBCExamplePreLogin
             clientInfo = new Properties();
             // "hiveclient.properties"为客户端配置文件，如果使用多实例特性，需要把该文件换成对应实例客户端下的"hiveclient.properties"
             // "hiveclient.properties"文件位置在对应实例客户端安裝包解压目录下的config目录下
-            String hiveclientProp = JDBCExamplePreLogin.class.getClassLoader().getResource("conf/hiveclient.properties")
+            hiveclientProp = JDBCExamplePreLogin.class.getClassLoader().getResource("conf/hiveclient.properties")
                     .getPath();
             File propertiesFile = new File(hiveclientProp);
             fileInputStream = new FileInputStream(propertiesFile);
@@ -86,23 +82,7 @@ public class JDBCExamplePreLogin
         zooKeeperNamespace = clientInfo.getProperty("zooKeeperNamespace");
         serviceDiscoveryMode = clientInfo.getProperty("serviceDiscoveryMode");
         principal = clientInfo.getProperty("principal");
-        // 设置新建用户的USER_NAME，其中"xxx"指代之前创建的用户名，例如创建的用户为user，则USER_NAME为user
-        USER_NAME = "panel";
-
-        if ("KERBEROS".equalsIgnoreCase(auth))
-        {
-            // 设置客户端的keytab和krb5文件路径
-            USER_KEYTAB_FILE = JDBCExamplePreLogin.class.getClassLoader().getResource("conf/user.keytab").getPath();
-            KRB5_FILE = JDBCExamplePreLogin.class.getClassLoader().getResource("conf/krb5.conf").getPath();
-
-
-            LoginUtil.setJaasFile(USER_NAME, USER_KEYTAB_FILE);
-            LoginUtil.setZookeeperServerPrincipal(ZOOKEEPER_SERVER_PRINCIPAL_KEY, ZOOKEEPER_DEFAULT_SERVER_PRINCIPAL);
-
-            // 安全模式
-            // Zookeeper登录认证
-            LoginUtil.login(USER_NAME, USER_KEYTAB_FILE, KRB5_FILE, CONF);
-        }
+        LoginUtil.login(hiveclientProp,CONF);
     }
 
     /**

@@ -118,8 +118,9 @@ public class JDBCExample
         String[] sqls = { "CREATE TABLE IF NOT EXISTS employees_info(id INT,name STRING)",
                 "SELECT COUNT(*) FROM employees_info", "DROP TABLE employees_info" };
 
-        // 拼接JDBC URL
-        StringBuilder sBuilder = new StringBuilder("jdbc:hive2://").append(zkQuorum).append("/");
+        // 拼接JDBC URL,如果需要指定访问的数据库，可以在zkQuorum后加上数据库名字(test1为数据库名字，不加的话默认访问default)比如：jdbc:hive2://xxx.xxx.xxx.xxx:24002,xxx.xxx.xxx.xxx:24002,xxx.xxx.xxx.xxx:24002/test1
+        //jdbc:hive2://xxx.xxx.xxx.xxx:24002,xxx.xxx.xxx.xxx:24002,xxx.xxx.xxx.xxx:24002/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2;sasl.qop=auth-conf;auth=KERBEROS;principal=hive/hadoop.hadoop.com@HADOOP.COM;
+        StringBuilder sBuilder = new StringBuilder("jdbc:hive2://").append(zkQuorum).append("/").append("liguodong");
 
         if ("KERBEROS".equalsIgnoreCase(auth))
         {
@@ -150,14 +151,17 @@ public class JDBCExample
             // 表建完之后，如果要往表中导数据，可以使用LOAD语句将数据导入表中，比如从HDFS上将数据导入表:
             // load data inpath '/tmp/employees.txt' overwrite into table employees_info;
             execDDL(connection, sqls[0]);
+            //154-155设置hive参数，并查看是否设置成功。
+            //execDDL(connection,"set hive.exec.compress.output=true");
+            //execDML(connection,"set hive.exec.compress.output ");
             System.out.println("Create table success!");
 
-            // 查询
-            execDML(connection, sqls[1]);
-
-            // 删表
-            execDDL(connection, sqls[2]);
-            System.out.println("Delete table success!");
+//            // 查询
+//            execDML(connection, sqls[1]);
+//
+//            // 删表
+//            execDDL(connection, sqls[2]);
+//            System.out.println("Delete table success!");
         }
         catch (Exception e)
         {

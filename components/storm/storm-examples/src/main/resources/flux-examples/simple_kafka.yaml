@@ -2,20 +2,20 @@ name: "kafka"
 
 components:
   - id: "zkHosts"
-    className: "org.apache.storm.kafka.ZkHosts"
+    className: "storm.kafka.ZkHosts"
     constructorArgs: 
       - "${kafka.zookeeper.root.list}"
       
   - id: "stringScheme"
-    className: "org.apache.storm.kafka.StringScheme"
+    className: "storm.kafka.StringScheme"
 
   - id: "stringMultiScheme"
-    className: "org.apache.storm.spout.SchemeAsMultiScheme"
+    className: "backtype.storm.spout.SchemeAsMultiScheme"
     constructorArgs:
       - ref: "stringScheme"
 
   - id: spoutConfig
-    className: "org.apache.storm.kafka.SpoutConfig"
+    className: "storm.kafka.SpoutConfig"
     constructorArgs:
       - ref: "zkHosts"
       - "input"
@@ -26,34 +26,15 @@ components:
         ref: "stringMultiScheme"
         
   - id: "defaultTopicSelector"
-    className: "org.apache.storm.kafka.bolt.selector.DefaultTopicSelector"
+    className: "storm.kafka.bolt.selector.DefaultTopicSelector"
     constructorArgs:
       - "output"
       
   - id: "fieldNameBasedTupleToKafkaMapper"
-    className: "org.apache.storm.kafka.bolt.mapper.FieldNameBasedTupleToKafkaMapper"
+    className: "storm.kafka.bolt.mapper.FieldNameBasedTupleToKafkaMapper"
     constructorArgs:
       - "words"
       - "count"
-  - id: "kafkaProducerProps"
-    className: "java.util.Properties"
-    configMethods:
-      - name: "put"
-        args:
-          - "bootstrap.servers"
-          - "${metadata.broker.list}"
-      - name: "put"
-        args:
-          - "acks"
-          - "1"
-      - name: "put"
-        args:
-          - "key.serializer"
-          - "org.apache.kafka.common.serialization.StringSerializer"
-      - name: "put"
-        args:
-          - "value.serializer"
-          - "org.apache.kafka.common.serialization.StringSerializer"
         
 config: 
   topology.workers: 1
@@ -65,7 +46,7 @@ config:
   
 spouts:
   - id: "kafkaSpout"
-    className: "org.apache.storm.kafka.KafkaSpout"
+    className: "storm.kafka.KafkaSpout"
     constructorArgs:
       - ref: "spoutConfig"
     parallelism: 1
@@ -80,13 +61,11 @@ bolts:
     parallelism: 1
 
   - id: "kafkaBolt"
-    className: "org.apache.storm.kafka.bolt.KafkaBolt"
+    className: "storm.kafka.bolt.KafkaBolt"
     configMethods:
       - name: "withTopicSelector"
         args: 
           - ref: "defaultTopicSelector"
-      - name: "withProducerProperties"
-        args: [ref: "kafkaProducerProps"]
       - name: "withTupleToKafkaMapper"
         args:
           - ref: "fieldNameBasedTupleToKafkaMapper"

@@ -93,17 +93,17 @@ public class ASparkSQLDemoForDoc {
     {
         //*******认证 Start**************
         //配置认证配置文件和凭据，仅供测试使用。非安全版本和正式代码删除。正式提交任务推荐使用spark-submit方式。
-        String PRNCIPAL_NAME = "zlt";//需要修改为实际在manager添加的用户
-        String krb5Conf =  ASparkSQLDemoForDoc.class.getClassLoader().getResource("krb5.conf").getPath();
-        String keyTab = ASparkSQLDemoForDoc.class.getClassLoader().getResource("user.keytab").getPath();
-        LoginUtil.login(PRNCIPAL_NAME, keyTab, krb5Conf, conf);
+//        String PRNCIPAL_NAME = "lyysxg";//需要修改为实际在manager添加的用户
+//        String krb5Conf =  ASparkSQLDemoForDoc.class.getClassLoader().getResource("krb5.conf").getPath();
+//        String keyTab = ASparkSQLDemoForDoc.class.getClassLoader().getResource("user.keytab").getPath();
+//        LoginUtil.login(PRNCIPAL_NAME, keyTab, krb5Conf, conf);
         //*******认证 End**************
 
         //将样例数据上传到HDFS
         prepareTestData();
 
         //创建SparkSession。SparkSession为Spark的各项功能提供了统一的入口点，封装了SparkConf、SparkContext和SQLContext。
-        SparkSession sparkSession = SparkSession.builder().appName("TestSparkSql").config("spark.master", "local[2]").getOrCreate();
+        SparkSession sparkSession = SparkSession.builder().appName("TestSparkSql").getOrCreate();
         //从HDFS上读取样例数据，转换成RDD。
         JavaRDD<FemaleInfo> femaleInfoJavaRDD = sparkSession.read().textFile(DST_DATA_PATH).javaRDD().map(new Function<String, FemaleInfo>() {
             @Override

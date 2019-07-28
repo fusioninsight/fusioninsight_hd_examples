@@ -31,14 +31,14 @@ public class HdfsExample
 
     private static String PRNCIPAL_NAME = "test";
 
-    private static String PATH_TO_KEYTAB = HdfsExample.class.getClassLoader().getResource("user.keytab").getPath();
+    private static String PATH_TO_KEYTAB = HdfsExample.class.getClassLoader().getResource("conf/user.keytab").getPath();
 
-    private static String PATH_TO_KRB5_CONF = HdfsExample.class.getClassLoader().getResource("krb5.conf").getPath();
+    private static String PATH_TO_KRB5_CONF = HdfsExample.class.getClassLoader().getResource("conf/krb5.conf").getPath();
 
-    private static String PATH_TO_HDFS_SITE_XML = HdfsExample.class.getClassLoader().getResource("hdfs-site.xml")
+    private static String PATH_TO_HDFS_SITE_XML = HdfsExample.class.getClassLoader().getResource("conf/hdfs-site.xml")
             .getPath();
 
-    private static String PATH_TO_CORE_SITE_XML = HdfsExample.class.getClassLoader().getResource("core-site.xml")
+    private static String PATH_TO_CORE_SITE_XML = HdfsExample.class.getClassLoader().getResource("conf/core-site.xml")
             .getPath();
 
     public HdfsExample(Configuration conf)
@@ -124,12 +124,9 @@ public class HdfsExample
 
         conf = new Configuration();
         // conf file
-        // conf.addResource(new Path(PATH_TO_HDFS_SITE_XML));
-        // conf.addResource(new Path(PATH_TO_CORE_SITE_XML));
-
-        String userdir = System.getProperty("user.dir") + File.separator + "conf2" + File.separator;
-        conf.addResource(new Path(userdir + "core-site.xml"));
-        conf.addResource(new Path(userdir + "hdfs-site.xml"));
+        String userDir = System.getProperty("user.dir") + File.separator + "conf2" + File.separator;
+        conf.addResource(new Path(userDir + "core-site.xml"));
+        conf.addResource(new Path(userDir + "hdfs-site.xml"));
 
     }
 

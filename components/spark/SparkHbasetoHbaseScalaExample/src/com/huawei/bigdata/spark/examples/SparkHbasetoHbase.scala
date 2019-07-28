@@ -4,6 +4,7 @@ import java.io.IOException
 import java.util
 
 import com.esotericsoftware.kryo.Kryo
+import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.{TableName, CellUtil, HBaseConfiguration}
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
@@ -12,6 +13,7 @@ import org.apache.hadoop.hbase.protobuf.ProtobufUtil
 import org.apache.hadoop.hbase.util.{Base64, Bytes}
 import org.apache.spark.serializer.KryoRegistrator
 import org.apache.spark.{SparkContext, SparkConf}
+import com.huawei.hadoop.security.LoginUtil
 
 /**
   * calculate data from hbase1/hbase2,then update to hbase2
@@ -21,6 +23,18 @@ object SparkHbasetoHbase {
   case class FemaleInfo(name: String, gender: String, stayTime: Int)
 
   def main(args: Array[String]) {
+    val userPrincipal = "sparkuser"
+    val userKeytabPath = "/opt/FIclient/user.keytab"
+    val krb5ConfPath = "/opt/FIclient/KrbClient/kerberos/var/krb5kdc/krb5.conf"
+    val ZKServerPrincipal = "zookeeper/hadoop.hadoop.com"
+
+    val ZOOKEEPER_DEFAULT_LOGIN_CONTEXT_NAME: String = "Client"
+    val ZOOKEEPER_SERVER_PRINCIPAL_KEY: String = "zookeeper.server.principal"
+    val hadoopConf: Configuration = new Configuration()
+    LoginUtil.setJaasConf(ZOOKEEPER_DEFAULT_LOGIN_CONTEXT_NAME, userPrincipal, userKeytabPath)
+    LoginUtil.setZookeeperServerPrincipal(ZOOKEEPER_SERVER_PRINCIPAL_KEY, ZKServerPrincipal)
+    LoginUtil.login(userPrincipal, userKeytabPath, krb5ConfPath, hadoopConf)
+
     val conf = new SparkConf().setAppName("SparkHbasetoHbase")
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     conf.set("spark.kryo.registrator", "com.huawei.bigdata.spark.examples.MyRegistrator")
@@ -40,7 +54,7 @@ object SparkHbasetoHbase {
     val rdd = sc.newAPIHadoopRDD(hbConf, classOf[TableInputFormat], classOf[ImmutableBytesWritable], classOf[Result])
 
     // Traverse every Partition in the HBase table1 and update the HBase table2
-    //If less data, you can use rdd.foreach()
+    // If less data, you can use rdd.foreach()
     rdd.foreachPartition(x => hBaseWriter(x))
 
     sc.stop()
@@ -142,4 +156,5 @@ class MyRegistrator extends KryoRegistrator {
     kryo.register(classOf[org.apache.hadoop.hbase.NoTagsKeyValue])
     kryo.register(classOf[org.apache.hadoop.hbase.protobuf.generated.ClientProtos.RegionLoadStats])
   }
+
 }

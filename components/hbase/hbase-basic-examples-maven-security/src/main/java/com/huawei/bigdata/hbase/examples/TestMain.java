@@ -26,15 +26,9 @@ public class TestMain
 
     private static Configuration conf = null;
 
-    private static String krb5File = null;
-
-    private static String userName = null;
-
-    private static String userKeytabFile = null;
-
     public static void main(String[] args)
     {
-      PropertyConfigurator.configure(TestMain.class.getResource("../resource/conf/log4j.properties").getPath());
+      PropertyConfigurator.configure(TestMain.class.getClassLoader().getResource("conf/log4j.properties").getPath());
         try
         {
             init();
@@ -65,9 +59,9 @@ public class TestMain
     {
         if (User.isHBaseSecurityEnabled(conf))
         {
-            userName = "test001";
-            userKeytabFile = TestMain.class.getClassLoader().getResource("conf/user.keytab").getPath();
-            krb5File = TestMain.class.getClassLoader().getResource("conf/krb5.conf").getPath();
+            String userName = "test001";
+            String userKeytabFile = TestMain.class.getClassLoader().getResource("conf/user.keytab").getPath();
+            String krb5File = TestMain.class.getClassLoader().getResource("conf/krb5.conf").getPath();
 
             /*
              * if need to connect zk, please provide jaas info about zk. of course, you can do it as below:
@@ -86,14 +80,10 @@ public class TestMain
     {
         // Default load from conf directory
         conf = HBaseConfiguration.create();
-        String userdir = TestMain.class.getClassLoader().getResource("conf").getPath() + File.separator;
-        // conf.addResource(new Path(userdir + "core-site.xml"), false);
-        // conf.addResource(new Path(userdir + "hdfs-site.xml"), false);
-        // conf.addResource(new Path(userdir + "hbase-site.xml"), false);
-        conf.addResource(new Path(TestMain.class.getClassLoader().getResource("conf/core-site.xml").getPath()), false);
-        conf.addResource(new Path(TestMain.class.getClassLoader().getResource("conf/hdfs-site.xml").getPath()), false);
-        conf.addResource(new Path(TestMain.class.getClassLoader().getResource("conf/hbase-site.xml").getPath()), false);
-
+        String userDir = TestMain.class.getClassLoader().getResource("conf").getPath() + File.separator;
+         conf.addResource(new Path(userDir + "core-site.xml"), false);
+         conf.addResource(new Path(userDir + "hdfs-site.xml"), false);
+         conf.addResource(new Path(userDir + "hbase-site.xml"), false);
     }
 
 }

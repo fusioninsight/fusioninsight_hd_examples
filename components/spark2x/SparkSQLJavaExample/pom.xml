@@ -123,5 +123,6 @@
         <outputDirectory>target/classes</outputDirectory>
         <testOutputDirectory>target/test-classes</testOutputDirectory>
         <sourceDirectory>src</sourceDirectory>
+        <resources><resource><directory>src/main/resources</directory></resource></resources>
     </build>
 </project>

@@ -1,4 +1,4 @@
-package com.huawei.bigdata.examples.hdfs.security;
+package com.huawei.bigdata.spark.security;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.authentication.util.KerberosUtil;

@@ -1,12 +1,10 @@
 package com.huawei.bigdata.hbase.examples;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-
+import com.huawei.bigdata.security.LoginUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
@@ -17,6 +15,10 @@ import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding;
 import org.apache.hadoop.hbase.security.User;
+import org.apache.log4j.PropertyConfigurator;
+
+import java.io.File;
+import java.io.IOException;
 
 public class TestZKSample
 {
@@ -25,18 +27,21 @@ public class TestZKSample
 
     private TableName tableName = null;
 
-    private Configuration conf = null;
+    private static Configuration conf = null;
 
     private Connection conn = null;
+
+    private static final String ZOOKEEPER_SERVER_PRINCIPAL_KEY = "zookeeper.server.principal";
+
+    private static final String ZOOKEEPER_DEFAULT_SERVER_PRINCIPAL = "zookeeper/hadoop.hadoop.com";
 
     public void testSample() throws Exception
     {
 
-        String keytabFile = "user.keytab";
-        String principal = "hbaseuser1";
         tableName = TableName.valueOf("hbase_zk_sample_table");
 
-        conf = login(keytabFile, principal);
+        init();
+        login();
         conn = ConnectionFactory.createConnection(conf);
         // HBase connect huawei zookeeper
         createTable(conf);
@@ -50,10 +55,8 @@ public class TestZKSample
     {
         try
         {
-            org.apache.zookeeper.ZooKeeper digestZk = null;
-            System.setProperty("zookeeper.sasl.client", "true");
-            System.setProperty("java.security.auth.login.config", "conf/jaas.conf");
-            digestZk = new org.apache.zookeeper.ZooKeeper("127.0.0.1:2181", 60000, null);
+            System.setProperty("zookeeper.sasl.client", "false");
+            org.apache.zookeeper.ZooKeeper digestZk = new org.apache.zookeeper.ZooKeeper("127.0.0.1:2181", 60000, null);
 
             LOG.info("digest directory：\n" + digestZk.getChildren("/", null));
 
@@ -66,33 +69,34 @@ public class TestZKSample
 
     }
 
-    public Configuration login(String keytabFile, String principal) throws Exception
+    private static void init() throws IOException
     {
-        Configuration conf = HBaseConfiguration.create();
+        // Default load from conf directory
+        conf = HBaseConfiguration.create();
+        String userDir = TestZKSample.class.getClassLoader().getResource("conf").getPath() + File.separator;
+        conf.addResource(new Path(TestZKSample.class.getClassLoader().getResource("conf/core-site.xml").getPath()), false);
+        conf.addResource(new Path(TestZKSample.class.getClassLoader().getResource("conf/hdfs-site.xml").getPath()), false);
+        conf.addResource(new Path(TestZKSample.class.getClassLoader().getResource("conf/hbase-site.xml").getPath()), false);
+    }
+
+    private static void login() throws IOException
+    {
         if (User.isHBaseSecurityEnabled(conf))
         {
-            String confDirPath = System.getProperty("user.dir") + File.separator + "conf" + File.separator;
+            String userName = "hbaseuser1";
+            String userKeytabFile = TestZKSample.class.getClassLoader().getResource("conf/user.keytab").getPath();
+            String krb5File = TestZKSample.class.getClassLoader().getResource("conf/krb5.conf").getPath();
 
-            // jaas.conf file, it is included in the client pakcage file
-            System.setProperty("java.security.auth.login.config", confDirPath + "jaas.conf");
-
-            // set the kerberos server info,point to the kerberosclient
-            System.setProperty("java.security.krb5.conf", confDirPath + "krb5.conf");
-            // set the keytab file name
-            conf.set("username.client.keytab.file", confDirPath + keytabFile);
-            // set the user's principal
-            try
-            {
-                conf.set("username.client.kerberos.principal", principal);
-                User.login(conf, "username.client.keytab.file", "username.client.kerberos.principal",
-                        InetAddress.getLocalHost().getCanonicalHostName());
-            }
-            catch (IOException e)
-            {
-                throw new Exception("Login failed.");
-            }
+            /*
+             * if need to connect zk, please provide jaas info about zk. of course, you can do it as below:
+             * System.setProperty("java.security.auth.login.config", confDirPath + "jaas.conf"); but the demo can help
+             * you more : Note: if this process will connect more than one zk cluster, the demo may be not proper. you
+             * can contact us for more help
+             */
+            LoginUtil.setJaasFile(userName,userKeytabFile);
+            LoginUtil.setZookeeperServerPrincipal(ZOOKEEPER_SERVER_PRINCIPAL_KEY, ZOOKEEPER_DEFAULT_SERVER_PRINCIPAL);
+            LoginUtil.login(userName, userKeytabFile, krb5File, conf);
         }
-        return conf;
     }
 
     /**
@@ -211,6 +215,7 @@ public class TestZKSample
 
     public static void main(String[] args)
     {
+        PropertyConfigurator.configure(TestZKSample.class.getClassLoader().getResource("conf/log4j.properties").getPath());
         TestZKSample ts = new TestZKSample();
         try
         {

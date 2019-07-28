@@ -177,7 +177,7 @@
 <value>604800000</value>
 </property>
 <property>
-<name>dfs.auto.data.mover.cron.expression</name>
+<name>dfs.auto.main.resources.data.mover.cron.expression</name>
 <value>0 * * * *</value>
 </property>
 <property>
@@ -341,7 +341,7 @@
 <value>600000</value>
 </property>
 <property>
-<name>dfs.auto.data.mover.enable</name>
+<name>dfs.auto.main.resources.data.mover.enable</name>
 <value>false</value>
 </property>
 <property>
@@ -385,7 +385,7 @@
 <value>hdfs hadoopmanager,supergroup,System_administrator_186</value>
 </property>
 <property>
-<name>dfs.encrypt.data.transfer.algorithm</name>
+<name>dfs.encrypt.main.resources.data.transfer.algorithm</name>
 <value>3des</value>
 </property>
 <property>
@@ -541,7 +541,7 @@
 <value>32</value>
 </property>
 <property>
-<name>dfs.encrypt.data.transfer.cipher.suites</name>
+<name>dfs.encrypt.main.resources.data.transfer.cipher.suites</name>
 <value>AES/CTR/NoPadding</value>
 </property>
 <property>
@@ -565,7 +565,7 @@
 <value></value>
 </property>
 <property>
-<name>dfs.encrypt.data.transfer.cipher.key.bitlength</name>
+<name>dfs.encrypt.main.resources.data.transfer.cipher.key.bitlength</name>
 <value>192</value>
 </property>
 <property>
@@ -653,7 +653,7 @@
 <value>10</value>
 </property>
 <property>
-<name>dfs.encrypt.data.transfer</name>
+<name>dfs.encrypt.main.resources.data.transfer</name>
 <value>false</value>
 </property>
 <property>

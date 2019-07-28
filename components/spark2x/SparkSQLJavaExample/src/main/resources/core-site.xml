@@ -423,7 +423,7 @@ DEFAULT</value>
 <value>*</value>
 </property>
 <property>
-<name>ipc.maximum.data.length</name>
+<name>ipc.maximum.main.resources.data.length</name>
 <value>268435456</value>
 </property>
 <property>

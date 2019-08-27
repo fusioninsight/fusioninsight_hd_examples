@@ -45,10 +45,10 @@ public class SparkToSparkSQL
         //如果打包放到服务器上运行，注释到上面的SparkSession，用下面的SparkSession
 //        SparkSession spark = SparkSession.builder().appName("spark core").getOrCreate();
         //从HDFS上读取文件，路径为HDFS上的路径
-        Dataset dealDataRDD = spark.read().textFile("/hacluster/myfile/shooppingTable.txt");//购物数据:用户ID、商品名称、商品分类、商品金额、购物日期
-        String path1 = "/hacluster/myfile/userTable.txt";//HDFS上的位置
+        Dataset dealDataRDD = spark.read().textFile("/myfile/shooppingTable.txt");//购物数据:用户ID、商品名称、商品分类、商品金额、购物日期
+        String path1 = "/myfile/userTable.txt";//HDFS上的位置
         Dataset userDataRDD = spark.read().textFile(path1);//用户信息：用户ID、用户名称、注册时间
-        String skimrecordPath="/hacluster/myfile/browsingTable.txt";
+        String skimrecordPath="/myfile/browsingTable.txt";
         Dataset skimRecordRDD = spark.read().textFile(skimrecordPath);//用户ID、商品名称、浏览时长、浏览日期。
         //将购物的原数据转换为K-V的形式。
         JavaPairRDD<Integer, Tuple4<String ,String,Integer,String>> mapDealDataRDD = MapDealDataRDD( dealDataRDD);

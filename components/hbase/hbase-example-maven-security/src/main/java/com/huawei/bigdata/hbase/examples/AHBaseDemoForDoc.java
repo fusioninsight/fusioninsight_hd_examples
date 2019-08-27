@@ -1,27 +1,23 @@
 package com.huawei.bigdata.hbase.examples;
 
-import java.io.IOException;
+import com.huawei.bigdata.security.LoginUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
-import org.apache.hadoop.hbase.security.User;
-import org.apache.log4j.PropertyConfigurator;
-import com.huawei.bigdata.security.LoginUtil;
-import java.util.ArrayList;
-import java.util.List;
-import org.apache.hadoop.hbase.Cell;
-import org.apache.hadoop.hbase.CellUtil;
-import org.apache.hadoop.hbase.HColumnDescriptor;
-import org.apache.hadoop.hbase.HTableDescriptor;
-import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.filter.CompareFilter.CompareOp;
 import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding;
+import org.apache.hadoop.hbase.security.User;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.log4j.PropertyConfigurator;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 用于配合文档说明HBase开发核心处理，更多HBase操作请参考其他样例代码
@@ -68,7 +64,7 @@ public class AHBaseDemoForDoc {
       //安全登录,请根据实际情况：安全模式需要安全登录；普通模式不需要
       if (User.isHBaseSecurityEnabled(conf))
       {
-        String userName = "TestUser";//请根据实际情况，修改“TestUser”为实际用户名
+        String userName = "fan651";//请根据实际情况，修改“TestUser”为实际用户名
         String userKeytabFile = AHBaseDemoForDoc.class.getClassLoader().getResource("conf/user.keytab").getPath();
         String krb5File = AHBaseDemoForDoc.class.getClassLoader().getResource("conf/krb5.conf").getPath();
 
@@ -88,6 +84,7 @@ public class AHBaseDemoForDoc {
     {
       //创建Connection对象,用于连接 HBase服务器 和 ZooKeeper，Connection也提供实例化Admin和Table对象的方法。
       conn = ConnectionFactory.createConnection(conf);
+        LOG.info("----------- ConnectionFactory.createConnection(conf)-------------------");
     }
     catch (Exception e)
     {
@@ -117,8 +114,22 @@ public class AHBaseDemoForDoc {
 
       // 实例化Admin对象。Admin提供了建表、创建列族、检查表是否存在、修改表结构和列族结构以及删除表等功能，以及执行其他管理操作
       admin = conn.getAdmin();
+        LOG.info("-----------admin = conn.getAdmin();-------------------");
+
+        if (admin.tableExists(tableName)) {
+            LOG.info("-----------if (admin.tableExists(tableName))----------------");
+       //   admin.enableTable(tableName);
+            LOG.info("-----------admin.enableTable(tableName);-------------------");
+            // 先禁用表，因为删除表要在表禁用的状态下才能生效。
+            admin.disableTable(tableName);
+            LOG.info("----------- admin.disableTable(tableName);;-------------------");
+            // 删除表。
+            admin.deleteTable(tableName);
+            LOG.info("-----------admin.deleteTable(tableName);------------------");
+        }
       if (!admin.tableExists(tableName))
       {
+          LOG.info("----------!admin.tableExists(tableName))-------------------");
         LOG.info("Creating table...");
         // 创建一个预划分region的表
         // 方式1：通过指定起始和结束RowKey 和region 个数 admin.createTable(hcd, Bytes.toBytes(10), Bytes.toBytes(800000), 30);
@@ -129,6 +140,7 @@ public class AHBaseDemoForDoc {
         splits[2] = Bytes.toBytes("O");
         splits[3] = Bytes.toBytes("U");
         admin.createTable(htd, splits);
+          LOG.info("-----------admin.createTable(htd, splits);------------------");
         LOG.info(admin.getClusterStatus());
         LOG.info(admin.listNamespaceDescriptors());
         LOG.info("Table created successfully.");
@@ -142,6 +154,9 @@ public class AHBaseDemoForDoc {
       // HBase通过HTable的put方法来Put数据，可以是一行数据put(Put p)也可以是数据集put(List<Put> ps)。
       //初始化一个Table对象，用于对表进行get, put, delete or scan操作（这些方法需以Get, Put, Delete or Scan对象作为参数传入）。
       table = conn.getTable(tableName);
+        LOG.info("-----------table = conn.getTable(tableName);-------------------");
+
+
 
       List<Put> puts = new ArrayList<Put>();
       // 设置列族名称为"info" ， 列名为"name"，"gender"，"age"，"address"
@@ -176,6 +191,7 @@ public class AHBaseDemoForDoc {
 
       // 提交put请求。可以是一行数据也可以是数据集
       table.put(puts);
+        LOG.info("---------- table.put(puts);-------------------");
       LOG.info("Put successfully.");
 
 
@@ -184,6 +200,7 @@ public class AHBaseDemoForDoc {
       // 设置新一个列族名称为"education"
       byte[] newFamilyName = Bytes.toBytes("education");
       htd = admin.getTableDescriptor(tableName);
+        LOG.info("----------admin.getTableDescriptor(tableName);-------------------");
       // 添加新列族前检查表中是否已经存在该列族
       if (!htd.hasFamily(newFamilyName))
       {
@@ -225,15 +242,52 @@ public class AHBaseDemoForDoc {
 
 
 
-      //****** 删除表中数据  ******
-      LOG.info("Entering testDelete.");
-      // 设置要删除数据的RowKey为"Z0001"
-      byte[] rowKeyForDelete = Bytes.toBytes("Z0001");
-      // 用要删除的rowkey,实例化Delete对象.
-      Delete delete = new Delete(rowKeyForDelete);
-      // 提交delete 请求.
-      table.delete(delete);
-      LOG.info("Delete table successfully.");
+
+
+      List<Put> puts2 = new ArrayList<Put>();
+      // 设置列族名称为"info" ， 列名为"name"，"gender"，"age"，"address"
+      byte[] familyName2 = Bytes.toBytes("info");
+      byte[][] qualifiers2 = { Bytes.toBytes("name"), Bytes.toBytes("gender"), Bytes.toBytes("age"),
+              Bytes.toBytes("address") };
+
+      //实例化Put对象。
+      //HBase是以RowKey为字典排序的分布式数据库系统，RowKey的设计对性能影响很大。
+      //大家开发时请结合具体的业务来设计RowKey。
+      Put put2 = new Put(Bytes.toBytes("Z0011"));
+      put2.addColumn(familyName, qualifiers[0], Bytes.toBytes("Zhang San"));
+      put2.addColumn(familyName, qualifiers[1], Bytes.toBytes("Male"));
+      put2.addColumn(familyName, qualifiers[2], Bytes.toBytes("19"));
+      put2.addColumn(familyName, qualifiers[3], Bytes.toBytes("Shenzhen, Guangdong"));
+      puts2.add(put2);
+
+      put2 = new Put(Bytes.toBytes("Z0012"));
+      put2.addColumn(familyName, qualifiers[0], Bytes.toBytes("Zhang San"));
+      put2.addColumn(familyName, qualifiers[1], Bytes.toBytes("Male"));
+      put2.addColumn(familyName, qualifiers[2], Bytes.toBytes("19"));
+      put2.addColumn(familyName, qualifiers[3], Bytes.toBytes("Shenzhen, Guangdong"));
+      puts2.add(put2);
+
+
+
+      // 提交put请求。可以是一行数据也可以是数据集
+      table.put(puts2);
+      LOG.info("---------- table.put(puts);-------------------");
+      LOG.info("Put successfully.");
+
+
+
+
+
+
+//      //****** 删除表中数据  ******
+//      LOG.info("Entering testDelete.");
+//      // 设置要删除数据的RowKey为"Z0001"
+//      byte[] rowKeyForDelete = Bytes.toBytes("Z0001");
+//      // 用要删除的rowkey,实例化Delete对象.
+//      Delete delete = new Delete(rowKeyForDelete);
+//      // 提交delete 请求.
+//      table.delete(delete);
+//      LOG.info("Delete table successfully.");
 
 
       //******  使用Scan读取数据  ******
@@ -249,13 +303,18 @@ public class AHBaseDemoForDoc {
       //设置扫描的缓存行数。
       scan.setCaching(1000);
 
+        LOG.info("+++++++ scan qian");
       // 提交scan 请求.
       rScanner = table.getScanner(scan);
+        LOG.info("++++++scan hou ");
       // 打印请求结果.
       for (Result r = rScanner.next(); r != null; r = rScanner.next())
       {
+
+          LOG.info("+++++++print rScanner1 ");
         for (Cell cell : r.rawCells())
         {
+            LOG.info("+++++++print rScanner2 ");
           LOG.info(Bytes.toString(CellUtil.cloneRow(cell)) + ":" + Bytes.toString(CellUtil.cloneFamily(cell))
                   + "," + Bytes.toString(CellUtil.cloneQualifier(cell)) + ","
                   + Bytes.toString(CellUtil.cloneValue(cell)));

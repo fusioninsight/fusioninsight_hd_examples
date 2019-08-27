@@ -16,12 +16,12 @@
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-streaming-java_2.11</artifactId>
-            <version>1.4.0</version>
+            <version>1.7.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-netty_2.11</artifactId>
-            <version>1.4.0</version>
+            <version>1.7.2</version>
         </dependency>
     </dependencies>
 

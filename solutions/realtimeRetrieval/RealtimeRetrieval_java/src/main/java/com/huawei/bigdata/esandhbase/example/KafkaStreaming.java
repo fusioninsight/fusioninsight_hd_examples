@@ -1,47 +1,50 @@
 package com.huawei.bigdata.esandhbase.example;
+
 import com.huawei.bigdata.security.LoginUtil;
 import com.huawei.bigdata.security.LoginUtilForKafka;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Admin;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.hadoop.hbase.client.*;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
-import org.apache.spark.streaming.kafka010.*;
+import org.apache.spark.streaming.kafka010.ConsumerStrategies;
+import org.apache.spark.streaming.kafka010.ConsumerStrategy;
+import org.apache.spark.streaming.kafka010.KafkaUtils;
+import org.apache.spark.streaming.kafka010.LocationStrategies;
+import org.apache.spark.streaming.kafka010.LocationStrategy;
 import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.hadoop.hbase.HBaseConfiguration;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.*;
-
-import com.huawei.bigdata.security.LoginUtil;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.log4j.PropertyConfigurator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+
 /*
  * 执行producer之前，先参考shell/createTopic.sh创建topic，并配置权限。多个producer可以向一个topic写入。
  * 样例需要先启动KafkaStreaming，再启动DataProducer
@@ -50,28 +53,26 @@ public class KafkaStreaming {
     static {
         PropertyConfigurator.configure(KafkaStreaming.class.getClassLoader().getResource("log4j.properties").getPath());
     }
+
     private static final Logger LOG = LoggerFactory.getLogger(KafkaStreaming.class);
     private static Properties properties = new Properties();
 
-    private static TableName tableName = null;
-    private static Connection conn = null;
-    private static Admin admin = null;
-    private static Table table = null;
-    private static RestClient restClient = null;
+    public static void main(String[] args) throws Exception {
+        //加载consumer 配置 文件信息
+        properties.load(new FileInputStream(KafkaStreaming.class.getClassLoader().getResource("consumer.properties").getPath()));
 
-    public static void main(String[] args)throws Exception {
         Configuration conf = HBaseConfiguration.create();
         //加载HDFS/HBase服务端配置，用于客户端与服务端对接
         conf.addResource(new Path(KafkaStreaming.class.getClassLoader().getResource("core-site.xml").getPath()));
         conf.addResource(new Path(KafkaStreaming.class.getClassLoader().getResource("hdfs-site.xml").getPath()));
         conf.addResource(new Path(KafkaStreaming.class.getClassLoader().getResource("hbase-site.xml").getPath()));
         //安全模式需要，普通模式可以删除s
-        String krb5Conf =  KafkaStreaming.class.getClassLoader().getResource("krb5.conf").getPath();
+        String krb5Conf = KafkaStreaming.class.getClassLoader().getResource("krb5.conf").getPath();
         String keyTab = KafkaStreaming.class.getClassLoader().getResource("user.keytab").getPath();
-        LoginUtilForKafka.setJaasFile("fwc", keyTab);
+        LoginUtilForKafka.setJaasFile(properties.getProperty("userName"), keyTab);
         LoginUtilForKafka.setKrb5Config(krb5Conf);
         LoginUtilForKafka.setZookeeperServerPrincipal("zookeeper/hadoop.hadoop.com");
-        LoginUtil.login("fwc", keyTab, krb5Conf, conf);
+        LoginUtil.login(properties.getProperty("userName"), keyTab, krb5Conf, conf);
 
         //加载consumer 配置 文件信息
         properties.load(new FileInputStream(KafkaStreaming.class.getClassLoader().getResource("consumer.properties").getPath()));
@@ -102,36 +103,73 @@ public class KafkaStreaming {
         kafkaParams.put("auto.commit.interval.ms", "100"); //offset自动提交间隔
 
         // 配置kafka consumer的认证。运行kafkaUtils.createDirectStream代码在认证后才能消费数据
-        kafkaParams.put("security.protocol","SASL_PLAINTEXT");
-        kafkaParams.put("sasl.kerberos.service.name","kafka");
+        kafkaParams.put("security.protocol", "SASL_PLAINTEXT");
+        kafkaParams.put("sasl.kerberos.service.name", "kafka");
 
         //设置PreferConsistent方式，均匀分配分区。
         LocationStrategy locationStrategy = LocationStrategies.PreferConsistent();
         //对consumer进行自定义配置。Subscribe方法提交参数列表和kafka参数的处理。
         ConsumerStrategy consumerStrategy = ConsumerStrategies.Subscribe(topicSet, kafkaParams);
 
+        //从Kafka接收数据并生成相应的DStream( DStream操作最终会转换成底层的RDD的操作)
+        JavaInputDStream<ConsumerRecord<String, String>> messages = KafkaUtils.createDirectStream(jsc, locationStrategy, consumerStrategy);
+
+        messages.foreachRDD(
+                        new VoidFunction<JavaRDD<ConsumerRecord<String, String>>>() {
+                            @Override
+                            public void call(JavaRDD<ConsumerRecord<String, String>> consumerRecordJavaRDD) throws Exception {
+                                //使用 foreachPartition 方法，每个分区并发工作
+                                consumerRecordJavaRDD.foreachPartition(
+                                        new VoidFunction<Iterator<ConsumerRecord<String, String>>>() {
+                                            @Override
+                                            public void call(Iterator<ConsumerRecord<String, String>> consumerRecordIterator) throws Exception {
+                                                hbaseAndESWrite(consumerRecordIterator);
+                                            }
+                                        }
+                                );
+                            }
+                        }
+        );
+        // Spark Streaming系统启动
+        jsc.start();
+        jsc.awaitTermination();
+    }
+
+    ;
+
+    private static void hbaseAndESWrite(Iterator<ConsumerRecord<String, String>> consumerRecordIterator) throws Exception {
+        Configuration conf = HBaseConfiguration.create();
+        TableName tableName = null;
+        Connection conn = null;
+        Admin admin = null;
+        Table table = null;
+        RestClient restClient = null;
+
         ESSearch.init();
         restClient = ESSearch.getRestClient();
+        String indexName = "testindex";
         //判断要创建的索引名称是否已经存在,不存在则创建
-        if (!ESSearch.exist(restClient,indexName)) {
+        if (!ESSearch.exist(restClient, indexName)) {
             ESSearch.createIndex(indexName);
         }
 
-        try
-        {
+        try {
             conn = ConnectionFactory.createConnection(conf);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             LOG.error("Failed to createConnection because ", e);
         }
-        tableName = TableName.valueOf(properties.getProperty("tableName"));
+        tableName = TableName.valueOf("testTableName");
         table = conn.getTable(tableName);
+
+        if (table == null) {
+            System.out.println("ttttttable is null" + table);
+        }
+        System.out.println("ttttttttt" + table);
         try {
             admin = conn.getAdmin();
-            if (!admin.tableExists(tableName))
-            {
+            if (!admin.tableExists(tableName)) {
                 LOG.info("Creating table...");
+                System.out.println("Creating table...");
                 HTableDescriptor htd = new HTableDescriptor(tableName);
                 HColumnDescriptor hcd1 = new HColumnDescriptor("Basic");
                 HColumnDescriptor hcd2 = new HColumnDescriptor("OtherInfo");
@@ -142,38 +180,64 @@ public class KafkaStreaming {
                 htd.addFamily(hcd1);
                 htd.addFamily(hcd2);
                 // 指定起止RowKey和region个数；此时的起始RowKey为第一个region的endKey，结束key为最后一个region的startKey。
-                admin.createTable(htd, Bytes.toBytes(100000),   Bytes.toBytes(400000), 10);
-            }
-            else
-            {
+                admin.createTable(htd, Bytes.toBytes(100000), Bytes.toBytes(400000), 10);
+            } else {
                 LOG.warn("table already exists");
+                System.out.println("table already exists");
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        //从Kafka接收数据并生成相应的DStream( DStream操作最终会转换成底层的RDD的操作)
-        JavaInputDStream<ConsumerRecord<String, String>> messages = KafkaUtils.createDirectStream(jsc, locationStrategy, consumerStrategy);
-        messages.foreachRDD(
-            new VoidFunction<JavaRDD<ConsumerRecord<String, String>>>() {
-                @Override
-                public void call(JavaRDD<ConsumerRecord<String, String>> consumerRecordJavaRDD) throws Exception {
-                    //使用 foreachPartition 方法，每个分区并发工作
-                    consumerRecordJavaRDD.foreachPartition(
-                        new VoidFunction<Iterator<ConsumerRecord<String, String>>>() {
-                             @Override
-                             public void call(Iterator<ConsumerRecord<String, String>> consumerRecordIterator) throws Exception {
-                                  hbaseAndESWrite(consumerRecordIterator);
-                             }
-                        }
-                     );
-                }
-            }
-        );
-        // Spark Streaming系统启动
-        jsc.start();
-        jsc.awaitTermination();
 
+        try {
+            List<Put> putList = new ArrayList<Put>();
+            while (consumerRecordIterator.hasNext()) {
+                ConsumerRecord cr = consumerRecordIterator.next();
+                String key = cr.key().toString();
+                String row = cr.value().toString();
+                LOG.info("start Write data to ES and HBase.....");
+                String[] elements = row.split(",");
+                Put put = new Put(Bytes.toBytes(elements[1]));
+                //将数据添加至hbase库
+                put.addColumn(Bytes.toBytes("Basic"), Bytes.toBytes("name"), Bytes.toBytes(elements[0]));
+                put.addColumn(Bytes.toBytes("Basic"), Bytes.toBytes("id"), Bytes.toBytes(elements[1]));
+                put.addColumn(Bytes.toBytes("Basic"), Bytes.toBytes("age"), Bytes.toBytes(elements[2]));
+                put.addColumn(Bytes.toBytes("Basic"), Bytes.toBytes("sex"), Bytes.toBytes(elements[3]));
+                if (key.equals("hotel")) {
+                    //添加索引(姓名,地址,时间)
+                    ESSearch.putData(restClient, elements[1], elements[0], elements[4], elements[5]);
+                    //将数据添加至hbase库
+                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("hotelAddr"), Bytes.toBytes(elements[4]));
+                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("checkInTime"), Bytes.toBytes(elements[5]));
+                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("checkOutTime"), Bytes.toBytes(elements[6]));
+                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("acquaintance"), Bytes.toBytes(elements[7]));
+                } else if (key.equals("internet")) {
+                    //添加索引(姓名,地址,时间)
+                    ESSearch.putData(restClient, elements[1], elements[0], elements[4], elements[5]);
+                    //将数据添加至hbase库
+                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("barAddr"), Bytes.toBytes(elements[4]));
+                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("internetDate"), Bytes.toBytes(elements[5]));
+                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("timeSpent"), Bytes.toBytes(elements[6]));
+                } else {
+                    //添加索引(姓名,地址,时间)
+                    ESSearch.putData(restClient, elements[1], elements[0], elements[4], elements[5]);
+                    //将数据添加至hbase库
+                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("bayonetAddr"), Bytes.toBytes(elements[4]));
+                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("checkDate"), Bytes.toBytes(elements[5]));
+                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("tripType"), Bytes.toBytes(elements[6]));
+                }
+                putList.add(put);
+            }
+            if (putList.size() > 2) {
+                LOG.info("Write data to HBase.....");
+                table.put(putList);
+            } else {
+                table.put(putList);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         if (table != null) {
             try {
                 table.close();
@@ -197,62 +261,15 @@ public class KafkaStreaming {
             }
         }
         //在进行完Elasticsearch操作后，需要调用“restClient.close()”关闭所申请的资源。
-        if( restClient!=null) {
+        if (restClient != null) {
             try {
                 restClient.close();
                 LOG.info("Close the client successful in main.");
             } catch (Exception e1) {
-                LOG.error("Close the client failed in main.",e1);
+                LOG.error("Close the client failed in main.", e1);
             }
-        }
-    };
-
-    private static void hbaseAndESWrite(Iterator<ConsumerRecord<String, String>> consumerRecordIterator) throws IOException {
-        try {
-            List<Put> putList = new ArrayList<Put>();
-            while (consumerRecordIterator.hasNext()) {
-                ConsumerRecord cr = consumerRecordIterator.next();
-                String key = cr.key().toString();
-                String row = cr.value().toString();
-                LOG.info("start Write data to ES and HBase.....");
-                String[] elements = row.split(",");
-                Put put = new Put(Bytes.toBytes(elements[1]));
-                //将数据添加至hbase库
-                put.addColumn(Bytes.toBytes("Basic"), Bytes.toBytes("name"), Bytes.toBytes(elements[0]));
-                put.addColumn(Bytes.toBytes("Basic"), Bytes.toBytes("id"), Bytes.toBytes(elements[1]));
-                put.addColumn(Bytes.toBytes("Basic"), Bytes.toBytes("age"), Bytes.toBytes(elements[2]));
-                put.addColumn(Bytes.toBytes("Basic"), Bytes.toBytes("sex"), Bytes.toBytes(elements[3]));
-                if(key.equals("hotel")){
-                    //添加索引(姓名,地址,时间)
-                    ESSearch.putData(restClient,elements[1], elements[0], elements[4], elements[5]);
-                    //将数据添加至hbase库
-                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("hotelAddr"), Bytes.toBytes(elements[4]));
-                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("checkInTime"), Bytes.toBytes(elements[5]));
-                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("checkOutTime"), Bytes.toBytes(elements[6]));
-                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("acquaintance"), Bytes.toBytes(elements[7]));
-                }else if(key.equals("internet")){
-                    //添加索引(姓名,地址,时间)
-                    ESSearch.putData(restClient,elements[1], elements[0], elements[4], elements[5]);
-                    //将数据添加至hbase库
-                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("barAddr"), Bytes.toBytes(elements[4]));
-                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("internetDate"), Bytes.toBytes(elements[5]));
-                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("timeSpent"), Bytes.toBytes(elements[6]));
-                }else{
-                    //添加索引(姓名,地址,时间)
-                    ESSearch.putData(restClient,elements[1], elements[0], elements[4], elements[5]);
-                    //将数据添加至hbase库
-                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("bayonetAddr"), Bytes.toBytes(elements[4]));
-                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("checkDate"), Bytes.toBytes(elements[5]));
-                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("tripType"), Bytes.toBytes(elements[6]));
-                }
-                putList.add(put);
-            }
-            if (putList.size() > 0) {
-                LOG.info("Write data to HBase.....");
-                table.put(putList);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
+
 }
+

@@ -19,6 +19,7 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.apache.spark.streaming.*;
 
+import com.huawei.hadoop.security.LoginUtil;
 import kafka.serializer.StringDecoder;
 
 
@@ -30,6 +31,11 @@ public class SparkOnStreamingToHbase {
     if (args.length < 3) {
       printUsage();
     }
+    String userPrincipal = "sparkuser";
+    String userKeytabPath = "/opt/FIclient/user.keytab";
+    String krb5ConfPath = "/opt/FIclient/KrbClient/kerberos/var/krb5kdc/krb5.conf";
+    Configuration hadoopConf = new Configuration();
+    LoginUtil.login(userPrincipal, userKeytabPath, krb5ConfPath, hadoopConf);
 
     String checkPointDir = args[0];
     String topics = args[1];
@@ -91,6 +97,7 @@ public class SparkOnStreamingToHbase {
     Configuration conf = HBaseConfiguration.create();
     Connection connection = null;
     Table table = null;
+
     try {
       connection = ConnectionFactory.createConnection(conf);
       table = connection.getTable(TableName.valueOf("table1"));

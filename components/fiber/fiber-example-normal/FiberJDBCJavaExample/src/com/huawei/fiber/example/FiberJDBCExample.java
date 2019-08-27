@@ -25,79 +25,79 @@ public class FiberJDBCExample {
     Statement stmt = null;
     ResultSet rs = null;
     try {
-      //4. Create a Fiber connection,create a Statement.
+//      //4. Create a Fiber connection,create a Statement.
       conn = DriverManager.getConnection(url);
       stmt = conn.createStatement();
-
-      //1. Switch to the Spark execution engine.
-      stmt.execute("set fiber.execution.engine = spark");
-      try {
-        //2. Drop tb_spark if it exists.
-        stmt.execute("DROP TABLE IF EXISTS tb_spark");
-        //3. Create table tb_spark.
-        stmt.execute("CREATE TABLE IF NOT EXISTS tb_spark(Id INT, Name String, Company String)" +
-          " row format delimited fields terminated by \",\" STORED AS TEXTFILE");
-        stmt.execute("load data inpath '" + sparkDataPath + "' overwrite into table tb_spark");
-        //4. Count the records of tb_spark.
-        stmt.execute("select count(*) from tb_spark");
-        rs = stmt.getResultSet();
-        System.out.println("--------- count of tb_spark--------");
-        System.out.println("| count |");
-        while (rs.next()) {
-          long cnt = rs.getLong(1);
-          System.out.println("| " + cnt + " |");
-        }
-        //5. Query the tb_spark.
-        stmt.execute("select * from tb_spark");
-        rs = stmt.getResultSet();
-        System.out.println("---------content of tb_spark--------");
-        System.out.println("| id | name | company |");
-        while (rs.next()) {
-          int id = rs.getInt(1);
-          String name = rs.getString(2);
-          String company = rs.getString(3);
-          System.out.println("|  " + id + " | " + name + " | " + company + " | ");
-        }
-      } catch (SQLException e) {
-        System.out.println("Exception happened when engine is spark. " + e.getMessage());
-      } finally {
-        stmt.execute("DROP TABLE IF EXISTS tb_spark");
-      }
-
-      //1. Switch to the Hive execution engine
-      stmt.execute("set fiber.execution.engine = hive");
-      try {
-        //2. Drop tb_hive if it is exist
-        stmt.execute("DROP TABLE IF EXISTS tb_hive");
-        //3. Create table tb_hive
-        stmt.execute("CREATE TABLE IF NOT EXISTS tb_hive(Id INT, Name String, Company String)" +
-          " row format delimited fields terminated by \",\" STORED AS TEXTFILE");
-        stmt.execute("load data inpath '" + hiveDataPath + "' overwrite into table tb_hive");
-        //4. Count the records of tb_hive
-        stmt.execute("select count(*) from tb_hive");
-        rs = stmt.getResultSet();
-        System.out.println("--------- count of tb_hive--------");
-        System.out.println("| count |");
-        while (rs.next()) {
-          long cnt = rs.getLong(1);
-          System.out.println("| " + cnt + " |");
-        }
-        //5. Query the tb_hive
-        stmt.execute("select * from tb_hive");
-        rs = stmt.getResultSet();
-        System.out.println("---------content of tb_hive--------");
-        System.out.println("| id | name | company |");
-        while (rs.next()) {
-          int id = rs.getInt(1);
-          String name = rs.getString(2);
-          String company = rs.getString(3);
-          System.out.println("|  " + id + " | " + name + " | " + company + " | ");
-        }
-      } catch (SQLException e) {
-        System.out.println("Exception happened when engine is hive. " + e.getMessage());
-      } finally {
-        stmt.execute("DROP TABLE IF EXISTS tb_hive");
-      }
+//
+//      //1. Switch to the Spark execution engine.
+//       stmt.execute("set fiber.execution.engine = spark");
+//      try {
+//        //2. Drop tb_spark if it exists.
+//        stmt.execute("DROP TABLE IF EXISTS tb_spark");
+//        //3. Create table tb_spark.
+//        stmt.execute("CREATE TABLE IF NOT EXISTS tb_spark(Id INT, Name String, Company String)" +
+//          " row format delimited fields terminated by \",\" STORED AS TEXTFILE");
+//        stmt.execute("load data inpath '" + sparkDataPath + "' overwrite into table tb_spark");
+//        //4. Count the records of tb_spark.
+//        stmt.execute("select count(*) from tb_spark");
+//        rs = stmt.getResultSet();
+//        System.out.println("--------- count of tb_spark--------");
+//        System.out.println("| count |");
+//        while (rs.next()) {
+//          long cnt = rs.getLong(1);
+//          System.out.println("| " + cnt + " |");
+//        }
+//        //5. Query the tb_spark.
+//        stmt.execute("select * from tb_spark");
+//        rs = stmt.getResultSet();
+//        System.out.println("---------content of tb_spark--------");
+//        System.out.println("| id | name | company |");
+//        while (rs.next()) {
+//          int id = rs.getInt(1);
+//          String name = rs.getString(2);
+//          String company = rs.getString(3);
+//          System.out.println("|  " + id + " | " + name + " | " + company + " | ");
+//        }
+//      } catch (SQLException e) {
+//        System.out.println("Exception happened when engine is spark. " + e.getMessage());
+//      } finally {
+//        stmt.execute("DROP TABLE IF EXISTS tb_spark");
+//      }
+//
+//      //1. Switch to the Hive execution engine
+//      stmt.execute("set fiber.execution.engine = hive");
+//      try {
+//        //2. Drop tb_hive if it is exist
+//        stmt.execute("DROP TABLE IF EXISTS tb_hive");
+//        //3. Create table tb_hive
+//        stmt.execute("CREATE TABLE IF NOT EXISTS tb_hive(Id INT, Name String, Company String)" +
+//          " row format delimited fields terminated by \",\" STORED AS TEXTFILE");
+//        stmt.execute("load data inpath '" + hiveDataPath + "' overwrite into table tb_hive");
+//        //4. Count the records of tb_hive
+//        stmt.execute("select count(*) from tb_hive");
+//        rs = stmt.getResultSet();
+//        System.out.println("--------- count of tb_hive--------");
+//        System.out.println("| count |");
+//        while (rs.next()) {
+//          long cnt = rs.getLong(1);
+//          System.out.println("| " + cnt + " |");
+//        }
+//        //5. Query the tb_hive
+//        stmt.execute("select * from tb_hive");
+//        rs = stmt.getResultSet();
+//        System.out.println("---------content of tb_hive--------");
+//        System.out.println("| id | name | company |");
+//        while (rs.next()) {
+//          int id = rs.getInt(1);
+//          String name = rs.getString(2);
+//          String company = rs.getString(3);
+//          System.out.println("|  " + id + " | " + name + " | " + company + " | ");
+//        }
+//      } catch (SQLException e) {
+//        System.out.println("Exception happened when engine is hive. " + e.getMessage());
+//      } finally {
+//        stmt.execute("DROP TABLE IF EXISTS tb_hive");
+//      }
 
       //1. Switch to the Phoenix execution engine
       conn.setAutoCommit(true);
@@ -107,17 +107,23 @@ public class FiberJDBCExample {
         stmt.execute("DROP TABLE IF EXISTS tb_phoenix");
         //3. Create table tb_phoenix
         stmt.execute("CREATE TABLE IF NOT EXISTS tb_phoenix(Id INTEGER not null primary key, Name VARCHAR(20), Company VARCHAR(20))");
-        stmt.execute("UPSERT into tb_phoenix(Id, Name,Company) values (101,'phoenix_user1','company1')");
-        stmt.execute("UPSERT into tb_phoenix(Id, Name,Company) values (102,'phoenix_user2','company2')");
-        stmt.execute("UPSERT into tb_phoenix(Id, Name,Company) values (103,'phoenix_user3','company3')");
+//        stmt.execute("UPSERT into tb_phoenix(Id, Name,Company) values (1011,'phoenix_user1','company1')");
+//        stmt.execute("UPSERT into tb_phoenix(Id, Name,Company) values (1012,'phoenix_user2','company2')");
+//        stmt.execute("UPSERT into tb_phoenix(Id, Name,Company) values (1031,'phoenix_user3','company3')");
+        long startTime = System.currentTimeMillis();
+        for(int i = 0;i<100000;i++){
+          stmt.execute("UPSERT into tb_phoenix(Id, Name,Company) values ("+i+",'phoenix_user3','company3')");
+        }
         //4. Count the records of tb_phoenix
+        long endTime =System.currentTimeMillis();
+        System.out.println(endTime-startTime);
         stmt.execute("select count(*) from tb_phoenix");
         rs = stmt.getResultSet();
         System.out.println("--------- count of tb_phoenix--------");
         System.out.println("| count |");
         while (rs.next()) {
           long cnt = rs.getLong(1);
-          System.out.println("| " + cnt + " |");
+//          System.out.println("| " + cnt + " |");
         }
         //5. Query the  tb_phoenix
         stmt.execute("select * from tb_phoenix");
@@ -128,7 +134,7 @@ public class FiberJDBCExample {
           int id = rs.getInt(1);
           String name = rs.getString(2);
           String company = rs.getString(3);
-          System.out.println("|  " + id + " | " + name + " | " + company + " | ");
+//          System.out.println("|  " + id + " | " + name + " | " + company + " | ");
         }
       } catch (SQLException e) {
         System.out.println("Exception happened when engine is phoenix. " + e.getMessage());

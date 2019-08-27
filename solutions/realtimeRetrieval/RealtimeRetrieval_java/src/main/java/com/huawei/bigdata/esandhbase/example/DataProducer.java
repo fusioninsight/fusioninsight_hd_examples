@@ -22,15 +22,18 @@ public class DataProducer {
     private static Properties producerProps = new Properties();
 
     public static void main(String args[]) throws Exception {
+        //加载从集群下载的客户端配置文件，与服务端对接
+        producerProps.load(new FileInputStream(DataProducer.class.getClassLoader().getResource("producer.properties").getPath()));
+
         //安全模式需要，普通模式可以删除
         String krb5Conf =  DataProducer.class.getClassLoader().getResource("krb5.conf").getPath();
         String keyTab = DataProducer.class.getClassLoader().getResource("user.keytab").getPath();
-        LoginUtilForKafka.setJaasFile("fwc", keyTab);
+        LoginUtilForKafka.setJaasFile(producerProps.getProperty("userName"), keyTab);
         LoginUtilForKafka.setKrb5Config(krb5Conf);
         LoginUtilForKafka.setZookeeperServerPrincipal("zookeeper/hadoop.hadoop.com");
 
         //加载从集群下载的客户端配置文件，与服务端对接
-        producerProps.load(new FileInputStream(DataProducer.class.getClassLoader().getResource("producer.properties").getPath()));
+       // producerProps.load(new FileInputStream(DataProducer.class.getClassLoader().getResource("producer.properties").getPath()));
         //Producer业务代码
         //配置当前Producer的定制化配置参数
         producerProps.put("acks", "all"); //服务端多少副本保存成功后，返回响应。0：不需要server相应，1：一个副本，all：所有副本
@@ -68,6 +71,15 @@ public class DataProducer {
                                 if (!tempString.isEmpty()) {
                                     ProducerRecord producerRecord = new ProducerRecord<String, String>(topic, "hotel", tempString);
                                     LOG.info("hotel_info:" +tempString);
+                                    System.out.println("hotel_info:" +tempString);
+                                    try
+                                    {
+                                        Thread.sleep(500);
+                                    }
+                                    catch (InterruptedException e)
+                                    {
+                                        e.printStackTrace();
+                                    }
                                     producer.send(producerRecord);
                                 }
                             }
@@ -83,6 +95,15 @@ public class DataProducer {
                                 if (!tempString.isEmpty()) {
                                     ProducerRecord producerRecord = new ProducerRecord<String, String>(topic, "internet", tempString);
                                     LOG.info("internet_info:" +tempString);
+                                    System.out.println("internet_info:" +tempString);
+                                    try
+                                    {
+                                        Thread.sleep(500);
+                                    }
+                                    catch (InterruptedException e)
+                                    {
+                                        e.printStackTrace();
+                                    }
                                     producer.send(producerRecord);
                                 }
                             }
@@ -97,6 +118,15 @@ public class DataProducer {
                                 if (!tempString.isEmpty()) {
                                     ProducerRecord producerRecord = new ProducerRecord<String, String>(topic, "bayonet", tempString);
                                     LOG.info("bayonet_info:" +tempString);
+                                    System.out.println("bayonet_info:" +tempString);
+                                    try
+                                    {
+                                        Thread.sleep(500);
+                                    }
+                                    catch (InterruptedException e)
+                                    {
+                                        e.printStackTrace();
+                                    }
                                     producer.send(producerRecord);
                                 }
                             }

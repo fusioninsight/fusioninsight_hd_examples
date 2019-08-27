@@ -4,7 +4,6 @@ import java.util.{Date, Properties}
 
 import com.huawei.hadoop.security.LoginUtil
 import org.apache.hadoop.conf.Configuration
-import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkContext}
 
@@ -64,7 +63,7 @@ object SparkToHive {
 
 
     //加载数据路径
-    val checkPointDir: String = properties.getProperty("checkPoint")
+    val checkPointDir = properties.getProperty("checkPoint")
     val dealDataPath = properties.getProperty("dealdatapath")
     val userDataPath = properties.getProperty("userdatapath")
     val skimRecordPath = properties.getProperty("skimrecordpath")
@@ -73,7 +72,7 @@ object SparkToHive {
     //加载数据，返回RDD
     val dealDataRDD = sc.textFile(dealDataPath)
     val userDataRDD = sc.textFile(userDataPath)
-    val skimRecordRDD: RDD[String] = sc.textFile(skimRecordPath)
+    val skimRecordRDD = sc.textFile(skimRecordPath)
 
     //将加载进来的数据构建为需要的数据模型
     val mapDealDataRDD = dealDataRDD.map(_.split(",")).map(x=>(x(0),x(1),x(2),x(3),x(4)))
@@ -92,7 +91,7 @@ object SparkToHive {
       * 作为参考时间,作为数据加载进去,时间回溯半年
       * */
     val beforeTimeMillis = DateToBefore.beforeTime()
-    val joinDataDU: RDD[(String, ((String, String, String, String), Option[(String, String)]))] = mapDealDataRDD.leftOuterJoin(mapUserDataRDD)
+    val joinDataDU = mapDealDataRDD.leftOuterJoin(mapUserDataRDD)
 
     val goldpath = properties.getProperty("goldpath")
     val spreadpath = properties.get("spreadpath")

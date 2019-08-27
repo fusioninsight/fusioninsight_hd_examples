@@ -47,7 +47,7 @@ public class KafkaStream {
         Properties properties = new Properties();
         properties.load(new FileInputStream(KafkaStream.class.getClassLoader().getResource("consumer.properties").getPath()));
         //集群消息
-        String brokers = "189.211.68.235:21007,189.211.68.223:21007,189.211.69.32:21007";
+        String brokers = "189.154.5.72:21007,189.154.7.48:21007,189.154.5.75:21007";
         //kafka配置信息
         String topics = "test-topic";
         String batchTime = "3";
@@ -69,6 +69,7 @@ public class KafkaStream {
         // 配置kafka consumer的认证。运行kafkaUtils.createDirectStream代码在认证后才能消费数据
         kafkaParams.put("security.protocol", "SASL_PLAINTEXT");
         kafkaParams.put("sasl.kerberos.service.name", "kafka");
+        kafkaParams.put("kerberos.domain.name", "hadoop.hadoop.com");
 
         //设置PreferConsistent方式，均匀分配分区。
         LocationStrategy locationStrategy = LocationStrategies.PreferConsistent();

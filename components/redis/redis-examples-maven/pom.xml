@@ -20,21 +20,15 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-    	<groupId>jdk.tools</groupId>
-    	<artifactId>jdk.tools</artifactId>
-    	<scope>system</scope>
-    	<systemPath>${JAVA_HOME}/lib/tools.jar</systemPath>
-    </dependency>
-    <dependency>
-    	<groupId>com.huawei.redis</groupId>
-    	<artifactId>jredisclient</artifactId>
-    	<version>0.0.2</version>
-    </dependency>
-    <dependency>
-    	<groupId>redis.clients</groupId>
-    	<artifactId>jedis</artifactId>
-    	<version>1.5.2</version>
-    </dependency>
+      <groupId>com.huawei.redis</groupId>
+      <artifactId>jredisclient</artifactId>
+      <version>0.0.2</version>
+  </dependency>
+      <dependency>
+          <groupId>com.huawei</groupId>
+          <artifactId>wcc_krb5</artifactId>
+          <version>1.0.2</version>
+      </dependency>
     <dependency>
     	<groupId>log4j</groupId>
     	<artifactId>log4j</artifactId>

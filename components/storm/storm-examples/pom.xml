@@ -11,8 +11,8 @@
     <properties>
         <storm.version>1.0.2</storm.version>
         <curator.version>2.10.0</curator.version>
-        <kafka.version>0.10.0.0</kafka.version>
-        <hadoop.version>2.7.2</hadoop.version>
+        <kafka.version>1.1.0</kafka.version>
+        <hadoop.version>3.1.1</hadoop.version>
         <solr.version>6.2.0</solr.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -45,7 +45,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.10</artifactId>
+            <artifactId>kafka_2.11</artifactId>
             <version>${kafka.version}</version>
             <exclusions>
                 <exclusion>

@@ -3,6 +3,7 @@ package com.huawei.storm.example.kafka;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.storm.kafka.bolt.KafkaBolt;
 import org.apache.storm.kafka.bolt.mapper.FieldNameBasedTupleToKafkaMapper;
 import org.apache.storm.kafka.bolt.selector.DefaultTopicSelector;
@@ -15,6 +16,8 @@ import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.Values;
+
 import static org.apache.storm.kafka.spout.KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST;
 
 /**
@@ -126,8 +129,7 @@ public class NewKafkaTopology {
         }
 
         // 定义KafkaSpout
-        KafkaSpout kafkaSpout = new KafkaSpout<String, String>(
-                getKafkaSpoutConfig(getKafkaSpoutStreams()));
+        KafkaSpout kafkaSpout = new KafkaSpout<>(getKafkaSpoutConfig());
 
         // CountBolt
         CountBolt countBolt = new CountBolt();
@@ -162,16 +164,24 @@ public class NewKafkaTopology {
         conf.put(Config.TOPOLOGY_AUTO_CREDENTIALS, auto_tgts);
     }
 
-    private static KafkaSpoutConfig<String, String> getKafkaSpoutConfig(
-            KafkaSpoutStreams kafkaSpoutStreams) {
-        return new KafkaSpoutConfig.Builder<String, String>(
-                getKafkaConsumerProps(), kafkaSpoutStreams, getTuplesBuilder(),
-                getRetryService())
+    private static KafkaSpoutConfig<String, String> getKafkaSpoutConfig() throws Exception{
+        ByTopicRecordTranslator<String, String> trans = new ByTopicRecordTranslator<>(TOPIC_PART_OFF_KEY_VALUE_FUNC,
+                new Fields("value", "topic", "partition", "offset","key"), STREAMS[0]);
+        return KafkaSpoutConfig.builder(KAFKA_BROKER_LIST, INPUT_TOPICS)
+                .setRetry(getRetryService())
                 .setOffsetCommitPeriodMs(DEFAULT_OFFSET_COMMIT_PERIOD_MS)
                 .setFirstPollOffsetStrategy(DEFAULT_STRATEGY)
                 .setMaxUncommittedOffsets(DEFAULT_MAX_UNCOMMIT_OFFSET_NUM)
-                .build();
+                .setRecordTranslator(trans)
+                .setProp(getKafkaConsumerProps()).build();
     }
+
+    public static Func<ConsumerRecord<String, String>, List<Object>> TOPIC_PART_OFF_KEY_VALUE_FUNC = new Func<ConsumerRecord<String, String>, List<Object>>() {
+        @Override
+        public List<Object> apply(ConsumerRecord<String, String> r) {
+            return new Values(r.value(),r.topic(), r.partition(), r.offset(), r.key());
+        }
+    };
 
     private static Map<String, Object> getKafkaConsumerProps() {
         Map<String, Object> props = new HashMap<String, Object>();
@@ -197,16 +207,6 @@ public class NewKafkaTopology {
     }
 
     /**
-     * 构造KafkaSpoutTuplesBuilder，用于从ConsumerRecords中构造tuples
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    private static KafkaSpoutTuplesBuilder<String, String> getTuplesBuilder() {
-        return new KafkaSpoutTuplesBuilderNamedTopics.Builder<String, String>(
-                new TopicsTupleBuilder<String, String>(INPUT_TOPICS[0])).build();
-    }
-
-    /**
      * 构造KafkaSpoutRetryService，用于管理并重试发送失败的tuples
      * @return
      */
@@ -222,14 +222,4 @@ public class NewKafkaTopology {
         return new TimeInterval(delay, timeUnit);
     }
 
-    /**
-     * 构造KafkaSpoutStreams，用于定义并添加stream
-     * @return
-     */
-    private static KafkaSpoutStreams getKafkaSpoutStreams() {
-        final Fields outputFields = new Fields("value", "topic", "partition", "offset",
-                "key");
-        return new KafkaSpoutStreamsNamedTopics.Builder(outputFields, STREAMS[0],
-                new String[] { INPUT_TOPICS[0] }).build();
-    }
 }

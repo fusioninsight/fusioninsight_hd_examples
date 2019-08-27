@@ -8,11 +8,29 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.conf.Configuration;
+import com.huawei.hadoop.security.LoginUtil;
+import com.huawei.hadoop.security.KerberosUtil;
 
 public class ThriftServerQueriesTest {
     public static void main(String[] args) throws SQLException, ClassNotFoundException, IOException {
+
+        String userPrincipal = "sparkuser";
+        String userKeytabPath = "/opt/FIclient/user.keytab";
+        String krb5ConfPath = "/opt/FIclient/KrbClient/kerberos/var/krb5kdc/krb5.conf";
+        String principalName = KerberosUtil.getKrb5DomainRealm();
+        String ZKServerPrincipal = "zookeeper/hadoop." + principalName;
+
+        String ZOOKEEPER_DEFAULT_LOGIN_CONTEXT_NAME = "Client";
+        String ZOOKEEPER_SERVER_PRINCIPAL_KEY = "zookeeper.server.principal";
+
+        Configuration hadoopConf = new Configuration();
+        LoginUtil.setJaasConf(ZOOKEEPER_DEFAULT_LOGIN_CONTEXT_NAME, userPrincipal, userKeytabPath);
+        LoginUtil.setZookeeperServerPrincipal(ZOOKEEPER_SERVER_PRINCIPAL_KEY, ZKServerPrincipal);
+        LoginUtil.login(userPrincipal, userKeytabPath, krb5ConfPath, hadoopConf);
+
+        String securityConfig = ";saslQop=auth-conf;auth=KERBEROS;principal=spark2x/hadoop." + principalName + "@" + principalName + ";user.principal=sparkuser;user.keytab=/opt/FIclient/user.keytab;";
         Configuration config = new Configuration();
         config.addResource(new Path(args[0]));
         String zkUrl = config.get("spark.deploy.zookeeper.url");
@@ -43,9 +61,9 @@ public class ThriftServerQueriesTest {
 
         StringBuilder sb = new StringBuilder("jdbc:hive2://"
                 + zkUrl
-                + "/;serviceDiscoveryMode=zooKeeper;"
-                + "zooKeeperNamespace="
-                + zkNamespace + ";");
+                + ";serviceDiscoveryMode=zooKeeper;zooKeeperNamespace="
+                + zkNamespace
+                + securityConfig);
         String url = sb.toString();
 
         ArrayList<String> sqlList = new ArrayList<String>();
@@ -87,6 +105,7 @@ public class ThriftServerQueriesTest {
                 }
                 System.out.println("---- Done executing sql: " + sql + " ----");
             }
+
 
         } catch (Exception e) {
             e.printStackTrace();

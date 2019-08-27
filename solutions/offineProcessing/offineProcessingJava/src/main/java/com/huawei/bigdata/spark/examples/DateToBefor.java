@@ -12,7 +12,10 @@ public class DateToBefor {
        }
       static long BeforeTime() {
               Calendar calendar = Calendar.getInstance();
-              calendar.add(Calendar.MONTH,-6);
+              calendar.set(Calendar.YEAR,2018);
+              calendar.set(Calendar.MONTH,1);
+              calendar.set(Calendar.DAY_OF_MONTH,1);
+//              calendar.add(Calendar.MONTH,-6);
 
               return  calendar.getTimeInMillis();
        }

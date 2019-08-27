@@ -6,7 +6,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.FileInputStream;
 import java.util.Properties;
 
@@ -19,7 +18,7 @@ import static java.lang.Thread.sleep;
  * 样例需要先启动consumer，再启动producer
  */
 
-public class AProducerDemoForDoc {
+public class  AProducerDemoForDoc {
     static {
         PropertyConfigurator.configure(AProducerDemoForDoc.class.getClassLoader().getResource("conf/log4j.properties").getPath());
     }
@@ -35,7 +34,7 @@ public class AProducerDemoForDoc {
             String keyTab = AConsumerDemoForDoc.class.getClassLoader().getResource("conf/user.keytab").getPath();
 
             //使用jaas文件进行认证，生成jaas.conf配置文件，并配置到JVM系统参数中
-            LoginUtil.setJaasFile("TestUser", keyTab);
+            LoginUtil.setJaasFile("lyysxg", keyTab);
 
             //将krb5.conf（链接KDC的配置文件）配置到JVM系统参数中
             LoginUtil.setKrb5Config(krb5Conf);
@@ -85,7 +84,7 @@ public class AProducerDemoForDoc {
             //send的消息会缓存起来，达到发送时间间隔或最大缓存才会真正发送到服务端
             //样例代码执行时间很短，进程关闭了，还没达到发送条件，会导致消息没有实际发送
             //通过sleep保证进程生命周期内，消息被真正发送。
-            try {sleep(1000);} catch (Exception e) {LOG.error(e.toString());}
+            try {sleep(10);} catch (Exception e) {LOG.error(e.toString());}
         }
 
     }

@@ -36,7 +36,7 @@ public class AConsumerDemoForDoc {
             String keyTab = AConsumerDemoForDoc.class.getClassLoader().getResource("conf/user.keytab").getPath();
 
             //使用jaas文件进行认证，生成jaas.conf配置文件，并配置到JVM系统参数中
-            LoginUtil.setJaasFile("TestUser", keyTab);
+            LoginUtil.setJaasFile("lyysxg", keyTab);
 
             //将krb5.conf（链接KDC的配置文件）配置到JVM系统参数中
             LoginUtil.setKrb5Config(krb5Conf);
@@ -68,7 +68,7 @@ public class AConsumerDemoForDoc {
         //如果要防止consumer端故障，导致数据漏分析，需要设置为false，在数据处理完后在手动提交offset。
         consumerProps.put("enable.auto.commit", "true");
         consumerProps.put("auto.commit.interval.ms", "100"); //offset自动提交间隔
-        consumerProps.put("bootstrap.servers", "187.7.66.109:21007,187.7.67.6:21007,187.7.67.88:21007");//使用producer.properties中的值
+       consumerProps.put("bootstrap.servers", "187.4.64.185:21007,187.4.65.67:21007,187.4.65.85:21007");//使用producer.properties中的值
         consumerProps.put("key.deserializer", "org.apache.kafka.common.serialization.IntegerDeserializer"); //key的序列化处理方式
         consumerProps.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer"); //value的序列化处理方式
 

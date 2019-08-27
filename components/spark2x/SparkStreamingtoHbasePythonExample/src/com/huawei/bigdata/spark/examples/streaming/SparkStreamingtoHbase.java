@@ -26,7 +26,7 @@ import kafka.serializer.StringDecoder;
 /**
  * run streaming task and select table1 data from hbase, then update to table1
  */
-public class SparkOnStreamingToHbase implements Serializable {
+public class SparkStreamingtoHbase implements Serializable {
   public void streamingtohbase(JavaSparkContext jsc,String checkPointDir, String topics, String brokers) throws Exception {
 
     Duration batchDuration = Durations.seconds(2);

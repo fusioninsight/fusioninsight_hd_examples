@@ -108,18 +108,18 @@ public class HbaseSearch {
                 }
             }
 
-            if (conn != null)
-            {
-                try
-                {
-                    // 关闭Connection对象。
-                    conn.close();
-                }
-                catch (IOException e)
-                {
-                    LOG.error("Failed to close the Connection ", e);
-                }
-            }
+//            if (conn != null)
+//            {
+//                try
+//                {
+//                    // 关闭Connection对象。
+//                    conn.close();
+//                }
+//                catch (IOException e)
+//                {
+//                    LOG.error("Failed to close the Connection ", e);
+//                }
+//            }
         }
 
         LOG.info("Exiting test.");

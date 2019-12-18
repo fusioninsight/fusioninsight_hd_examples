@@ -11,7 +11,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hive.group>org.spark-project.hive</hive.group>
-        <hive.version>1.2.1.spark2</hive.version>
+        <hive.version>1.2.1.spark_2.3.2</hive.version>
         <hive.deps.scope>compile</hive.deps.scope>
         <scala.version>2.11.8</scala.version>
     </properties>

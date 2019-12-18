@@ -147,10 +147,9 @@ public class KafkaStreaming {
 
         ESSearch.init();
         restClient = ESSearch.getRestClient();
-        String indexName = "testindex";
         //判断要创建的索引名称是否已经存在,不存在则创建
-        if (!ESSearch.exist(restClient, indexName)) {
-            ESSearch.createIndex(indexName);
+        if (!ESSearch.exist(restClient)) {
+            ESSearch.createIndex();
         }
 
         try {

@@ -17,9 +17,10 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
-                </configuration></plugin>
+                </configuration>
+            </plugin>
+
         </plugins>
-        <resources><resource><directory>resource</directory></resource></resources>
     </build>
 
     <properties>
@@ -27,24 +28,34 @@
     </properties>
 
     <dependencies>
+
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.11</artifactId>
         </dependency>
+
         <dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
-            <version>3.5.1</version>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.6.5</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
     <dependencyManagement>
-    	<dependencies>
-    		<dependency>
-    			<groupId>org.apache.kafka</groupId>
-    			<artifactId>kafka_2.11</artifactId>
-    			<version>1.1.0</version>
-    		</dependency>
-    	</dependencies>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka_2.11</artifactId>
+                <version>1.1.0</version>
+            </dependency>
+        </dependencies>
     </dependencyManagement>
 </project>

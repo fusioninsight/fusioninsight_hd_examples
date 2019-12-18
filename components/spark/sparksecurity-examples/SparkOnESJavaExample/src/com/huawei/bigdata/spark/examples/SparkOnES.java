@@ -180,7 +180,6 @@ public class SparkOnES {
         builder.setDefaultHeaders(defaultHeaders);
         builder.setMaxRetryTimeoutMillis(MaxRetryTimeoutMillis);
         builder.setFailureListener(new RestClient.FailureListener(){
-            @Override
             public void onFailure(HttpHost host){
                 //trigger some actions when failure occurs
             }

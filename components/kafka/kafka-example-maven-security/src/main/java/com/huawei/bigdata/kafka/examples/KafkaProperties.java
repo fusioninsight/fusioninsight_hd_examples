@@ -1,16 +1,16 @@
 package com.huawei.bigdata.kafka.examples;
 
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class KafkaProperties
 {
-    private static final Logger LOG = LoggerFactory.getLogger(KafkaProperties.class);
+    private static final Logger LOG = Logger.getLogger(KafkaProperties.class);
 
     // Topic名称，安全模式下，需要以管理员用户添加当前用户的访问权限
     public final static String topic = "test0001";

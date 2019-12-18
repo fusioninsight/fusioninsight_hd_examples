@@ -61,8 +61,8 @@
 			<id>optional</id>
 			<active>true</active>
 			<protocol>http</protocol>
-			<username>fwx619776</username>
-			<password>Aa@111111</password>
+			<username>账户</username>
+			<password>密码</password>
 			<host>proxy.huawei.com</host>
 			<port>8080</port>
 			<nonProxyHosts>local.host|127.0.0.1|*.huawei.com|100.126.29.18|100.112.77.54</nonProxyHosts>

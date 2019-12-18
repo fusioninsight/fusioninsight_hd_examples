@@ -14,6 +14,5 @@ public class ESAndHbaseSearch {
         for (String id : ids) {
             HbaseSearch.search(id);
         }
-
     }
 }

@@ -55,7 +55,7 @@ public class    ESSearch {
         init();
         restClient = getRestClient();
 
-        System.out.println(exist( restClient,"huawei"));
+        System.out.println(exist( restClient));
 
         query(restClient,"huawei","doc","怀白晴");
         //在进行完Elasticsearch操作后，需要调用“restClient.close()”关闭所申请的资源。
@@ -75,9 +75,9 @@ public class    ESSearch {
             init();
             restClient = getRestClient();
 
-            System.out.println(exist( restClient,"huawei"));
+            System.out.println(exist( restClient));
 
-            reslut =  queryId(restClient,"huawei","doc",name);
+            reslut =  queryId(restClient,index,"doc",name);
             //在进行完Elasticsearch操作后，需要调用“restClient.close()”关闭所申请的资源。
             if( restClient!=null) {
                 try {
@@ -156,14 +156,14 @@ public class    ESSearch {
     }
 
     //*************创建指定分片数目的索引************
-    public static void createIndex(String indexName){
+    public static void createIndex(){
         Response rsp = null;
         Map<String, String> params = Collections.singletonMap("pretty", "true");
         String jsonString = "{" + "\"settings\":{" + "\"number_of_shards\":\"" + shardNum + "\","
                 + "\"number_of_replicas\":\"" + replicaNum + "\"" + "}}";
         HttpEntity entity = new NStringEntity(jsonString, ContentType.APPLICATION_JSON);
         try {
-            rsp = restClient.performRequest("PUT", "/" + indexName, params, entity);
+            rsp = restClient.performRequest("PUT", "/" + index, params, entity);
             if(HttpStatus.SC_OK == rsp.getStatusLine().getStatusCode()) {
                 LOG.info("CreateIndexWithShardNum successful.");
             }else {
@@ -176,7 +176,7 @@ public class    ESSearch {
     }
 
     //检查指定的索引是否存在于Elasticsearch集群中。
-    public static boolean exist(RestClient restClient, String index){
+    public static boolean exist(RestClient restClient){
         Map<String, String> params = Collections.singletonMap("pretty", "true");
         boolean isExist = true;
         Response rsp = null;

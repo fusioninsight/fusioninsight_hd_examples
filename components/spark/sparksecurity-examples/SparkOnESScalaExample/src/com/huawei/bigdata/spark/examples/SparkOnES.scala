@@ -115,7 +115,7 @@ class SparkOnES {
     builder.setDefaultHeaders(defaultHeaders)
     builder.setMaxRetryTimeoutMillis(MaxRetryTimeoutMillis)
     builder.setFailureListener(new RestClient.FailureListener() {
-      override def onFailure(host: HttpHost): Unit = {
+      def onFailure(host: HttpHost): Unit = {
         //trigger some actions when failure occurs
       }
     })

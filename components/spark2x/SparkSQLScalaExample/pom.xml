@@ -16,7 +16,7 @@
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_2.11</artifactId>
-            <version>2.1.0</version>
+            <version>2.3.2</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.tachyonproject</groupId>
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_2.11</artifactId>
-            <version>2.1.0</version>
+            <version>2.3.2</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.parquet</groupId>
@@ -55,6 +55,7 @@
 
     <build>
         <plugins>
+
             <plugin>
                 <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>
@@ -93,6 +94,7 @@
                     </execution>
                 </executions>
             </plugin>
+
         </plugins>
         <directory>target</directory>
         <outputDirectory>target/classes</outputDirectory>

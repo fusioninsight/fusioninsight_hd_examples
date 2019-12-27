@@ -5,50 +5,48 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.huawei.spark.examples</groupId>
-    <artifactId>SparkHbasetoHbaseJavaExample</artifactId>
+    <artifactId>SparkHbasetoHbase</artifactId>
     <version>1.0</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.compiler.source>1.8</maven.compiler.source>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_2.11</artifactId>
-            <version>2.1.0</version>
+            <version>2.3.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
-            <version>2.7.2</version>
+            <version>3.1.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-mapreduce-client-core</artifactId>
-            <version>2.7.2</version>
+            <version>3.1.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-client</artifactId>
-            <version>1.0.2</version>
+            <version>1.3.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-common</artifactId>
-            <version>1.0.2</version>
+            <version>1.3.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-protocol</artifactId>
-            <version>1.0.2</version>
+            <version>1.3.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-server</artifactId>
-            <version>1.0.2</version>
+            <version>1.3.1</version>
         </dependency>
         <dependency>
             <groupId>com.esotericsoftware.kryo</groupId>
@@ -63,12 +61,12 @@
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-streaming_2.11</artifactId>
-            <version>2.1.0</version>
+            <version>2.3.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-streaming-kafka-0-8_2.11</artifactId>
-            <version>2.1.0</version>
+            <version>2.3.2</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.kafka</groupId>
@@ -83,7 +81,7 @@
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-hive_2.11</artifactId>
-            <version>2.1.0</version>
+            <version>2.3.2</version>
         </dependency>
     </dependencies>
 
@@ -134,11 +132,6 @@
         <outputDirectory>target/classes</outputDirectory>
         <testOutputDirectory>target/test-classes</testOutputDirectory>
         <sourceDirectory>src</sourceDirectory>
-        <resources>
-            <resource>
-                <directory>src/resources</directory>
-            </resource>
-        </resources>
     </build>
 
 </project>

@@ -40,12 +40,13 @@ public class JavaDstreamKafkaWriter {
     // Populate Kafka properties
     Map<String, Object> kafkaParams = new HashMap<String, Object>();
     kafkaParams.put("value.deserializer","org.apache.kafka.common.serialization.StringDeserializer");
-    kafkaParams.put("key.deserializer" , "org.apache.kafka.common.serialization.StringDeserializer");
+    kafkaParams.put("key.deserializer" ,"org.apache.kafka.common.serialization.StringDeserializer");
     kafkaParams.put("value.serializer" , "org.apache.kafka.common.serialization.ByteArraySerializer");
     kafkaParams.put("key.serializer" , "org.apache.kafka.common.serialization.StringSerializer");
     kafkaParams.put("bootstrap.servers", brokers);
     kafkaParams.put("group.id", groupId);
     kafkaParams.put("auto.offset.reset", "smallest");
+
 
     // Create Spark Java streaming context
     JavaStreamingContext ssc = new JavaStreamingContext(sparkConf, Durations.milliseconds(500));

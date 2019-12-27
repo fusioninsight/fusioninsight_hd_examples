@@ -1,7 +1,7 @@
 package com.zr.financialElk
 
-import java.io.{File, FileInputStream, InputStream}
-import java.sql.{PreparedStatement, ResultSet, SQLException}
+import java.io.{File, FileInputStream}
+import java.sql.{PreparedStatement, SQLException}
 import java.text.SimpleDateFormat
 import java.util.{Date, Properties}
 
@@ -15,7 +15,7 @@ object LaunderMoney {
   def main(args: Array[String]): Unit = {
     //加载配置
     val propertie = new Properties()
-    val in: InputStream = this.getClass.getClassLoader().getResourceAsStream("Fproducer.properties")
+    val in = this.getClass.getClassLoader().getResourceAsStream("Fproducer.properties")
     propertie.load(in)
     //安全认证
     val userPrincipal = propertie.getProperty("userPrincipal")
@@ -31,12 +31,12 @@ object LaunderMoney {
     var pst: PreparedStatement = null
     val sql1 = "select bankCount from tradeInfo group by bankCount"
     pst = conn.prepareStatement(sql1)
-    val rs: ResultSet = pst.executeQuery()
+    val rs = pst.executeQuery()
     //判断洗钱嫌疑账户
     val launderAcount: List[String] = List()
     while (rs.next()) {
-      val account: String = rs.getString(1)
-      val sql2: String = s"select desBankCount from tradeInfo where bankCount=$account group by desBankCount"
+      val account = rs.getString(1)
+      val sql2 = s"select desBankCount from tradeInfo where bankCount=$account group by desBankCount"
       pst = conn.prepareStatement(sql2)
       val rs2 = pst.executeQuery()
       while (rs2.next()) {

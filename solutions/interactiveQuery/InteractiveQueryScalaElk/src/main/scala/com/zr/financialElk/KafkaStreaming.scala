@@ -11,7 +11,6 @@ import org.apache.spark.streaming.kafka010.{ConsumerStrategies, KafkaUtils, Loca
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.rdd.RDD
 
 
 object KafkaStreaming
@@ -79,10 +78,10 @@ object KafkaStreaming
             if (!rdd.isEmpty()) {
                 println("--------------")
                 rdd.collect().foreach(println)
-                val tradeInfo: RDD[(String, String, String, String, String, String, String, String, String, String)] = rdd.map(_.toString().split("\\|")).filter(x => x.length == 10).map(x => (x(0), x(1), x(2), x(3), x(4), x(5), x(6), x(7), x(8), x(9)))
+                val tradeInfo = rdd.map(_.toString().split("\\|")).filter(x => x.length == 10).map(x => (x(0), x(1), x(2), x(3), x(4), x(5), x(6), x(7), x(8), x(9)))
                 val accountInfo1 = rdd.map(_.toString().split("\\|")).filter(x => x.length == 10).map(x => (x(0), x(1), x(2)))
                 val accountInfo2 = rdd.map(_.toString().split("\\|")).filter(x => x.length == 10).map(x => (x(6), x(7), x(8)))
-                val accountInfo: RDD[(String, String, String)] = accountInfo1.union(accountInfo1)
+                val accountInfo = accountInfo1.union(accountInfo1)
 
                 accountInfo1.collect().foreach(println)
                 accountInfo2.collect().foreach(println)

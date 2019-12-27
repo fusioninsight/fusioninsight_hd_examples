@@ -8,6 +8,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
+import org.apache.log4j.PropertyConfigurator;
 import org.apache.spark.api.java.JavaRDD;
 
 import org.apache.spark.sql.Dataset;
@@ -21,10 +22,10 @@ import static java.lang.Thread.sleep;
 
 
 public class HdfsToSpark {
-//    static
-//    {
-//        PropertyConfigurator.configure(HdfsToSpark.class.getClassLoader().getResource("log4j-executor.properties").getPath());
-//    }
+    static
+    {
+        PropertyConfigurator.configure(HdfsToSpark.class.getClassLoader().getResource("log4j.properties").getPath());
+    }
     private final static Log LOG = LogFactory.getLog(HdfsToSpark.class);
     public static void main(String[] args) throws Exception,Throwable
     {
@@ -35,7 +36,7 @@ public class HdfsToSpark {
         //创建一个对象用于操作Spark
         SparkSession spark = SparkSession.builder().master("local").appName("spark core").getOrCreate();
         //加载测试文件，路径为HDFS上的路径
-        Dataset data = spark.read().textFile("/zwl/KafkaToSparkSql/test.txt");
+        Dataset data = spark.read().textFile("/zwl/KafkaToSparkSql/ceshi.txt");
         //将数据转换成RDD。
         JavaRDD<String> rdd =data.javaRDD();
         //用于加载kafka消费者的配置文件

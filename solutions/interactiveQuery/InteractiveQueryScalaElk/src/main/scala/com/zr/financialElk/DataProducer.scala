@@ -5,7 +5,6 @@ import java.util.Properties
 import main.scala.com.zr.utils.LoginUtil
 import org.apache.hadoop.conf.Configuration
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
-import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 
 
@@ -15,7 +14,6 @@ object DataProducer
     def main(args: Array[String]): Unit =
     {
         //读取配置文件
-        val a = "dasdasd";
         val propertie = new Properties()
         val in = this.getClass.getClassLoader().getResourceAsStream("Fproducer.properties")
         propertie.load(in)
@@ -48,11 +46,12 @@ object DataProducer
         println("inputPath:" + inputPath)
         //读取原始数据
         val file = sc.textFile(inputPath)
+
         file.foreachPartition((partisions: Iterator[String]) => {
             //创建生产者
-            val producer: KafkaProducer[String, String] = new KafkaProducer[String, String](property)
+            val producer = new KafkaProducer[String, String](property)
             partisions.foreach(x => {
-                val message: ProducerRecord[String, String] = new ProducerRecord[String, String](topic.toString, x.toString)
+                val message = new ProducerRecord[String, String](topic.toString, x.toString)
                 println(x.toString)
                 //生产者将消息写入kafka
                 try {

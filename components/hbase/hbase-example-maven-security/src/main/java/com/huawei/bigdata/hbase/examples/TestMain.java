@@ -32,9 +32,14 @@ public class TestMain
 
     private static String userKeytabFile = null;
 
+    static {
+        //日志配置文件
+        PropertyConfigurator.configure(TestMain.class.getClassLoader().getResource("conf/log4j.properties").getPath());
+    }
+
     public static void main(String[] args)
     {
-      PropertyConfigurator.configure(TestMain.class.getResource("../resource/conf/log4j.properties").getPath());
+     // PropertyConfigurator.configure(TestMain.class.getResource("../resource/conf/log4j.properties").getPath());
         try
         {
             init();
@@ -65,7 +70,7 @@ public class TestMain
     {
         if (User.isHBaseSecurityEnabled(conf))
         {
-            userName = "test001";
+            userName = "fan651";
             userKeytabFile = TestMain.class.getClassLoader().getResource("conf/user.keytab").getPath();
             krb5File = TestMain.class.getClassLoader().getResource("conf/krb5.conf").getPath();
 
@@ -90,9 +95,9 @@ public class TestMain
         // conf.addResource(new Path(userdir + "core-site.xml"), false);
         // conf.addResource(new Path(userdir + "hdfs-site.xml"), false);
         // conf.addResource(new Path(userdir + "hbase-site.xml"), false);
-        conf.addResource(new Path(TestMain.class.getClassLoader().getResource("conf/core-site.xml").getPath()), false);
-        conf.addResource(new Path(TestMain.class.getClassLoader().getResource("conf/hdfs-site.xml").getPath()), false);
-        conf.addResource(new Path(TestMain.class.getClassLoader().getResource("conf/hbase-site.xml").getPath()), false);
+        conf.addResource(new Path(TestMain.class.getClassLoader().getResource("conf/core-site.xml").getPath()));
+        conf.addResource(new Path(TestMain.class.getClassLoader().getResource("conf/hdfs-site.xml").getPath()));
+        conf.addResource(new Path(TestMain.class.getClassLoader().getResource("conf/hbase-site.xml").getPath()));
 
     }
 

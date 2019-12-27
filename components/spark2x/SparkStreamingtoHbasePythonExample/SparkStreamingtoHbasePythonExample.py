@@ -16,13 +16,13 @@ if __name__ == "__main__":
         exit(-1)
 
 	# 创建SparkSession
-	spark = SparkSession\
+    spark = SparkSession\
         .builder\
         .appName("SparkStreamingtoHbase") \
         .getOrCreate()
 	
 	# 向sc._jvm中导入要运行的类
-    java_import(spark._jvm, 'com.huawei.bigdata.spark.examples.streaming.SparkOnStreamingToHbase')
+    java_import(spark._jvm, 'com.huawei.bigdata.spark.examples.streaming.SparkStreamingtoHbase')
 
 	# 创建类实例并调用方法
-    spark._jvm.SparkOnStreamingToHbase().streamingtohbase(spark._jsc, sys.argv[1], sys.argv[2], sys.argv[3])
+    spark._jvm.SparkStreamingtoHbase().streamingtohbase(spark._jsc, sys.argv[1], sys.argv[2], sys.argv[3])

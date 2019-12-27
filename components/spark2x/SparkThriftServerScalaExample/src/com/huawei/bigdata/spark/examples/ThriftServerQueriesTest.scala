@@ -4,12 +4,32 @@ import java.io.{File, FileInputStream}
 import java.sql.{Connection, DriverManager, PreparedStatement}
 import java.util.Properties
 
-import scala.collection.mutable.ArrayBuffer
+import com.huawei.hadoop.security.LoginUtil
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
+import com.huawei.hadoop.security.KerberosUtil
+
+import scala.collection.mutable.ArrayBuffer
+
 
 object ThriftServerQueriesTest {
   def main(args: Array[String]): Unit = {
+    val userPrincipal = "sparkuser"
+    val userKeytabPath = "/opt/FIclient/user.keytab"
+    val krb5ConfPath = "/opt/FIclient/KrbClient/kerberos/var/krb5kdc/krb5.conf"
+    val principalName: String = KerberosUtil.getKrb5DomainRealm()
+    val ZKServerPrincipal = "zookeeper/hadoop." + principalName
+
+    val ZOOKEEPER_DEFAULT_LOGIN_CONTEXT_NAME: String = "Client"
+    val ZOOKEEPER_SERVER_PRINCIPAL_KEY: String = "zookeeper.server.principal"
+    val hadoopConf: Configuration = new Configuration();
+    LoginUtil.setJaasConf(ZOOKEEPER_DEFAULT_LOGIN_CONTEXT_NAME, userPrincipal, userKeytabPath)
+    LoginUtil.setZookeeperServerPrincipal(ZOOKEEPER_SERVER_PRINCIPAL_KEY, ZKServerPrincipal)
+    LoginUtil.login(userPrincipal, userKeytabPath, krb5ConfPath, hadoopConf);
+
+
+    val securityConfig = ";saslQop=auth-conf;auth=KERBEROS;principal=spark2x/hadoop." + principalName + "@" + principalName + ";user.principal=sparkuser;user.keytab=/opt/FIclient/user.keytab;"
+
     val config: Configuration = new Configuration()
     config.addResource(new Path(args(0)))
     val zkUrl = config.get("spark.deploy.zookeeper.url")
@@ -37,9 +57,9 @@ object ThriftServerQueriesTest {
 
     val sb = new StringBuilder("jdbc:hive2://"
       + zkUrl
-      + "/;serviceDiscoveryMode=zooKeeper;"
-      + "zooKeeperNamespace="
-      + zkNamespace + ";");
+      + ";serviceDiscoveryMode=zooKeeper;zooKeeperNamespace="
+      + zkNamespace
+      + securityConfig)
     val url = sb.toString()
 
     val sqlList = new ArrayBuffer[String]

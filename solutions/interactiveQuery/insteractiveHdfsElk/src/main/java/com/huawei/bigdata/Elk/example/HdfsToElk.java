@@ -18,6 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HdfsToElk {
+    /*
+     *
+     */
     static {
         //日志配置文件
         PropertyConfigurator.configure(HdfsToElk.class.getClassLoader().getResource("log4j.properties").getPath());
@@ -31,8 +34,8 @@ public class HdfsToElk {
         Connection conn = getConnection(userName, pw);
         String sqlText1 = "CREATE TABLE IF NOT EXISTS tradeInfo(bankCount VARCHAR(128),name VARCHAR(128)," +
                 "IDCard VARCHAR(128),tradeDate VARCHAR(128),tradeAmount INTEGER,tradeType VARCHAR(32)," +
-                "desBankCount VARCHAR(128),desName VARCHAR(128),desIDCard VARCHAR(128),remark VARCHAR(128)) tablespace hdfs;";
-        String sqlText2 = "CREATE TABLE IF NOT EXISTS accountInfo(bankCount VARCHAR(128),name VARCHAR(128),IDCard VARCHAR(128)) tablespace hdfs;";
+                "desBankCount VARCHAR(128),desName VARCHAR(128),desIDCard VARCHAR(128),remark VARCHAR(128)) tablespace system_hdfs;";
+            String sqlText2 = "CREATE TABLE IF NOT EXISTS accountInfo(bankCount VARCHAR(128),name VARCHAR(128),IDCard VARCHAR(128)) tablespace system_hdfs;";
         createTable(conn, sqlText1);
         createTable(conn, sqlText2);
         FileSystem file = FileSystem.get(conf);
@@ -110,7 +113,7 @@ public class HdfsToElk {
     {
         System.out.println("Begin get Elk's connection");
         String driver = "org.postgresql.Driver";
-        String sourceURL = "jdbc:postgresql://187.5.88.121:25108/postgres";
+        String sourceURL = "jdbc:postgresql://189.154.5.72:25108/postgres";
         Connection conn = null;
         try{
             Class.forName(driver);

@@ -19,7 +19,7 @@ spark = SparkSession\
 java_import(spark._jvm, 'com.huawei.bigdata.spark.examples.SparkHivetoHbase')
 
 # 创建类实例并调用方法
-spark._jvm.SparkHbasetoHbase().hbasetohbase(spark._jsc)
+spark._jvm.SparkHivetoHbase().hivetohbase(spark._jsc)
 
 # 停止SparkSession
 spark.stop()

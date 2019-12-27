@@ -19,14 +19,6 @@ import com.huawei.bigdata.security.LoginUtil;
 
 public class JDBCExample
 {
-    private static final String HIVE_DRIVER = "org.apache.hive.jdbc.HiveDriver";
-
-    private static final String ZOOKEEPER_DEFAULT_LOGIN_CONTEXT_NAME = "Client";
-
-    private static final String ZOOKEEPER_SERVER_PRINCIPAL_KEY = "zookeeper.server.principal";
-
-    private static final String ZOOKEEPER_DEFAULT_SERVER_PRINCIPAL = "zookeeper/hadoop.hadoop.com";
-
     private static Configuration CONF = null;
 
     private static String KRB5_FILE = null;
@@ -46,55 +38,26 @@ public class JDBCExample
     private static String serviceDiscoveryMode = null;
 
     private static String principal = null;
-
     private static void init() throws IOException
     {
         CONF = new Configuration();
 
-        Properties clientInfo = null;
-
-        InputStream fileInputStream = null;
-        try
-        {
-            clientInfo = new Properties();
-            // "hiveclient.properties"为客户端配置文件，如果使用多实例特性，需要把该文件换成对应实例客户端下的"hiveclient.properties"
-            // "hiveclient.properties"文件位置在对应实例客户端安裝包解压目录下的config目录下
-            String hiveclientProp =  JDBCExample.class.getClassLoader().getResource("conf/hiveclient.properties").getPath();
-            File propertiesFile = new File(hiveclientProp);
-            fileInputStream = new FileInputStream(propertiesFile);
-            clientInfo.load(fileInputStream);
-        }
-        catch (Exception e)
-        {
-            throw new IOException(e);
-        }
-        finally
-        {
-            if (fileInputStream != null)
-            {
-                fileInputStream.close();
-                fileInputStream = null;
-            }
-        }
         // zkQuorum获取后的格式为"xxx.xxx.xxx.xxx:24002,xxx.xxx.xxx.xxx:24002,xxx.xxx.xxx.xxx:24002";
         // "xxx.xxx.xxx.xxx"为集群中ZooKeeper所在节点的业务IP，端口默认是24002
-        zkQuorum = clientInfo.getProperty("zk.quorum");
-        auth = clientInfo.getProperty("auth");
-        sasl_qop = clientInfo.getProperty("sasl.qop");
-        zooKeeperNamespace = clientInfo.getProperty("zooKeeperNamespace");
-        serviceDiscoveryMode = clientInfo.getProperty("serviceDiscoveryMode");
-        principal = clientInfo.getProperty("principal");
+        zkQuorum = InitConfResource.zkQuorum;
+        auth =InitConfResource.auth;
+        sasl_qop =InitConfResource.saslQop;
+        zooKeeperNamespace = InitConfResource.zooKeeperNamespace;
+        serviceDiscoveryMode = InitConfResource.serviceDiscoveryMode;
+        principal = InitConfResource.principal;
         // 设置新建用户的USER_NAME，其中"xxx"指代之前创建的用户名，例如创建的用户为user，则USER_NAME为user
-        USER_NAME = "panel";
-
-        if ("KERBEROS".equalsIgnoreCase(auth))
-        {
+        USER_NAME = InitConfResource.userName;
             // 设置客户端的keytab和krb5文件路径
-            USER_KEYTAB_FILE =JDBCExample.class.getClassLoader().getResource("conf/user.keytab").getPath();
-            KRB5_FILE = JDBCExample.class.getClassLoader().getResource("conf/krb5.conf").getPath();
+            USER_KEYTAB_FILE = InitConfResource.userkeytab;
+            KRB5_FILE = InitConfResource.userkrb5;
             System.setProperty("java.security.krb5.conf", KRB5_FILE);
-            System.setProperty(ZOOKEEPER_SERVER_PRINCIPAL_KEY, ZOOKEEPER_DEFAULT_SERVER_PRINCIPAL);
-        }
+            System.setProperty(InitConfResource.ZOOKEEPER_SERVER_PRINCIPAL_KEY, InitConfResource.ZOOKEEPER_DEFAULT_SERVER_PRINCIPAL);
+
     }
 
     /**
@@ -118,26 +81,17 @@ public class JDBCExample
         String[] sqls = { "CREATE TABLE IF NOT EXISTS employees_info(id INT,name STRING)",
                 "SELECT COUNT(*) FROM employees_info", "DROP TABLE employees_info" };
 
-        // 拼接JDBC URL
+        // 拼接JDBC URL,如果需要指定访问的数据库，可以在zkQuorum后加上数据库名字(test1为数据库名字，不加的话默认访问default)比如：jdbc:hive2://xxx.xxx.xxx.xxx:24002,xxx.xxx.xxx.xxx:24002,xxx.xxx.xxx.xxx:24002/test1
+        //jdbc:hive2://xxx.xxx.xxx.xxx:24002,xxx.xxx.xxx.xxx:24002,xxx.xxx.xxx.xxx:24002/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2;sasl.qop=auth-conf;auth=KERBEROS;principal=hive/hadoop.hadoop.com@HADOOP.COM;
         StringBuilder sBuilder = new StringBuilder("jdbc:hive2://").append(zkQuorum).append("/");
-
-        if ("KERBEROS".equalsIgnoreCase(auth))
-        {
             sBuilder.append(";serviceDiscoveryMode=").append(serviceDiscoveryMode).append(";zooKeeperNamespace=")
                     .append(zooKeeperNamespace).append(";sasl.qop=").append(sasl_qop).append(";auth=").append(auth)
                     .append(";principal=").append(principal).append(";user.principal=").append(USER_NAME)
                     .append(";user.keytab=").append(USER_KEYTAB_FILE).append(";");
-        }
-        else
-        {
-            // 普通模式
-            sBuilder.append(";serviceDiscoveryMode=").append(serviceDiscoveryMode).append(";zooKeeperNamespace=")
-                    .append(zooKeeperNamespace).append(";auth=none");
-        }
         String url = sBuilder.toString();
-
+        System.out.println("-------------------------"+url);
         // 加载Hive JDBC驱动
-        Class.forName(HIVE_DRIVER);
+        Class.forName(InitConfResource.HIVE_DRIVER);
 
         Connection connection = null;
         try
@@ -150,14 +104,17 @@ public class JDBCExample
             // 表建完之后，如果要往表中导数据，可以使用LOAD语句将数据导入表中，比如从HDFS上将数据导入表:
             // load data inpath '/tmp/employees.txt' overwrite into table employees_info;
             execDDL(connection, sqls[0]);
+            //154-155设置hive参数，并查看是否设置成功。
+            //execDDL(connection,"set hive.exec.compress.output=true");
+            //execDML(connection,"set hive.exec.compress.output ");
             System.out.println("Create table success!");
 
-            // 查询
-            execDML(connection, sqls[1]);
-
-            // 删表
-            execDDL(connection, sqls[2]);
-            System.out.println("Delete table success!");
+//            // 查询
+//            execDML(connection, sqls[1]);
+//
+//            // 删表
+//            execDDL(connection, sqls[2]);
+//            System.out.println("Delete table success!");
         }
         catch (Exception e)
         {

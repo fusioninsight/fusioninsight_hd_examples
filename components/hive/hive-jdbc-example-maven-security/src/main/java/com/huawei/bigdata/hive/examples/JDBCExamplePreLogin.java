@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.log4j.PropertyConfigurator;
 
 import com.huawei.bigdata.security.LoginUtil;
@@ -22,10 +23,6 @@ public class JDBCExamplePreLogin
     private static final String HIVE_DRIVER = "org.apache.hive.jdbc.HiveDriver";
 
     private static final String ZOOKEEPER_DEFAULT_LOGIN_CONTEXT_NAME = "Client";
-
-    private static final String ZOOKEEPER_SERVER_PRINCIPAL_KEY = "zookeeper.server.principal";
-
-    private static final String ZOOKEEPER_DEFAULT_SERVER_PRINCIPAL = "zookeeper/hadoop";
 
     private static Configuration CONF = null;
 
@@ -46,63 +43,34 @@ public class JDBCExamplePreLogin
     private static String serviceDiscoveryMode = null;
 
     private static String principal = null;
-
+    private static  String hiveclientProp =null;
     private static void init() throws IOException
     {
-        System.setProperty("java.security.auth.login.config","conf/jaas.conf");
         CONF = new Configuration();
 
-        Properties clientInfo = null;
-
-        InputStream fileInputStream = null;
-        try
-        {
-            clientInfo = new Properties();
-            // "hiveclient.properties"为客户端配置文件，如果使用多实例特性，需要把该文件换成对应实例客户端下的"hiveclient.properties"
-            // "hiveclient.properties"文件位置在对应实例客户端安裝包解压目录下的config目录下
-            String hiveclientProp = JDBCExamplePreLogin.class.getClassLoader().getResource("conf/hiveclient.properties")
-                    .getPath();
-            File propertiesFile = new File(hiveclientProp);
-            fileInputStream = new FileInputStream(propertiesFile);
-            clientInfo.load(fileInputStream);
-        }
-        catch (Exception e)
-        {
-            throw new IOException(e);
-        }
-        finally
-        {
-            if (fileInputStream != null)
-            {
-                fileInputStream.close();
-                fileInputStream = null;
-            }
-        }
         // zkQuorum获取后的格式为"xxx.xxx.xxx.xxx:24002,xxx.xxx.xxx.xxx:24002,xxx.xxx.xxx.xxx:24002";
         // "xxx.xxx.xxx.xxx"为集群中ZooKeeper所在节点的业务IP，端口默认是24002
-        zkQuorum = clientInfo.getProperty("zk.quorum");
-        auth = clientInfo.getProperty("auth");
-        sasl_qop = clientInfo.getProperty("sasl.qop");
-        zooKeeperNamespace = clientInfo.getProperty("zooKeeperNamespace");
-        serviceDiscoveryMode = clientInfo.getProperty("serviceDiscoveryMode");
-        principal = clientInfo.getProperty("principal");
-        // 设置新建用户的USER_NAME，其中"xxx"指代之前创建的用户名，例如创建的用户为user，则USER_NAME为user
-        USER_NAME = "panel";
+        zkQuorum = InitConfResource.zkQuorum;
+        auth =InitConfResource.auth;
+        sasl_qop =InitConfResource.saslQop;
+        zooKeeperNamespace = InitConfResource.zooKeeperNamespace;
+        serviceDiscoveryMode = InitConfResource.serviceDiscoveryMode;
+        principal = InitConfResource.principal;
 
-        if ("KERBEROS".equalsIgnoreCase(auth))
-        {
-            // 设置客户端的keytab和krb5文件路径
-            USER_KEYTAB_FILE = JDBCExamplePreLogin.class.getClassLoader().getResource("conf/user.keytab").getPath();
-            KRB5_FILE = JDBCExamplePreLogin.class.getClassLoader().getResource("conf/krb5.conf").getPath();
+        //加载HDFS服务端配置，包含客户端与服务端对接配置
+        CONF.addResource(new Path(InitConfResource.hdfsPath));
+        CONF.addResource(new Path(InitConfResource.coreSite));
 
-
-            LoginUtil.setJaasFile(USER_NAME, USER_KEYTAB_FILE);
-            LoginUtil.setZookeeperServerPrincipal(ZOOKEEPER_SERVER_PRINCIPAL_KEY, ZOOKEEPER_DEFAULT_SERVER_PRINCIPAL);
-
-            // 安全模式
-            // Zookeeper登录认证
-            LoginUtil.login(USER_NAME, USER_KEYTAB_FILE, KRB5_FILE, CONF);
-        }
+        //需要修改方法中的PRNCIPAL_NAME（用户名）
+        //安全模式需要进行kerberos认证，只在系统启动时执行一次。非安全模式可以删除
+        //认证相关，安全模式需要，普通模式可以删除
+        String PRNCIPAL_NAME =InitConfResource.userName;//需要修改为实际在manager添加的用户
+        String KRB5_CONF = InitConfResource.userkrb5;
+        String KEY_TAB = InitConfResource.userkeytab;
+        LoginUtil.setKrb5Config(KRB5_CONF);
+        LoginUtil.setZookeeperServerPrincipal(InitConfResource.ZOOKEEPER_DEFAULT_SERVER_PRINCIPAL);
+        LoginUtil.setJaasFile(PRNCIPAL_NAME, KEY_TAB);
+        LoginUtil.login(PRNCIPAL_NAME, KEY_TAB, KRB5_CONF, CONF);
     }
 
     /**
@@ -118,7 +86,7 @@ public class JDBCExamplePreLogin
     public static void main(String[] args)
             throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException, IOException
     {
-        PropertyConfigurator.configure(JDBCExamplePreLogin.class.getClassLoader().getResource("conf/log4j.properties").getPath());
+        PropertyConfigurator.configure(InitConfResource.log4j);
         // 参数初始化
         init();
 
@@ -128,20 +96,11 @@ public class JDBCExamplePreLogin
 
         // 拼接JDBC URL
         StringBuilder sBuilder = new StringBuilder("jdbc:hive2://").append(zkQuorum).append("/");
-
-        if ("KERBEROS".equalsIgnoreCase(auth))
-        {
-            sBuilder.append(";serviceDiscoveryMode=").append(serviceDiscoveryMode).append(";zooKeeperNamespace=")
-                    .append(zooKeeperNamespace).append(";sasl.qop=").append(sasl_qop).append(";auth=").append(auth)
-                    .append(";principal=").append(principal).append(";");
-        }
-        else
-        {
-            // 普通模式
-            sBuilder.append(";serviceDiscoveryMode=").append(serviceDiscoveryMode).append(";zooKeeperNamespace=")
-                    .append(zooKeeperNamespace).append(";auth=none");
-        }
+        sBuilder.append(";serviceDiscoveryMode=").append(serviceDiscoveryMode).append(";zooKeeperNamespace=")
+                .append(zooKeeperNamespace).append(";sasl.qop=").append(sasl_qop).append(";auth=").append(auth)
+                .append(";principal=").append(principal);
         String url = sBuilder.toString();
+        System.out.println("-------------------------------------"+url);
 
         // 加载Hive JDBC驱动
         Class.forName(HIVE_DRIVER);

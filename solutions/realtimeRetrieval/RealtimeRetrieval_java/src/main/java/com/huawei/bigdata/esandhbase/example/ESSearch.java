@@ -1,9 +1,10 @@
 package com.huawei.bigdata.esandhbase.example;
 
-import java.io.FileInputStream;
-import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
-
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.google.gson.Gson;
+import com.huawei.bigdata.security.LoginUtil;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -20,7 +21,14 @@ import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.google.gson.Gson;
+
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 public class    ESSearch {
     static {
@@ -44,13 +52,12 @@ public class    ESSearch {
     private static RestClient restClient = null;
 
     public static void main(String[] args)  throws Exception{
-
         init();
         restClient = getRestClient();
 
-        System.out.println(exist( restClient,"huawei"));
+        System.out.println(exist( restClient));
 
-        query(restClient,"huawei","doc","灵雁");
+        query(restClient,"huawei","doc","怀白晴");
         //在进行完Elasticsearch操作后，需要调用“restClient.close()”关闭所申请的资源。
         if( restClient!=null) {
             try {
@@ -61,6 +68,31 @@ public class    ESSearch {
             }
         }
     }
+
+    public static List<String> getID(String name){
+        List<String> reslut = new ArrayList<String>();
+        try {
+            init();
+            restClient = getRestClient();
+
+            System.out.println(exist( restClient));
+
+            reslut =  queryId(restClient,index,"doc",name);
+            //在进行完Elasticsearch操作后，需要调用“restClient.close()”关闭所申请的资源。
+            if( restClient!=null) {
+                try {
+                    restClient.close();
+                    LOG.info("Close the client successful in main.");
+                } catch (Exception e1) {
+                    LOG.error("Close the client failed in main.",e1);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return reslut;
+    }
+
 
     public static void init() throws Exception {
         properties.load( new FileInputStream(ESSearch.class.getClassLoader().getResource("es-example.properties").getPath()));
@@ -79,10 +111,14 @@ public class    ESSearch {
         //安全登录
         if ((isSecureMode).equals("true")) {
             String krb5ConfFile = ESSearch.class.getClassLoader().getResource("krb5.conf").getPath();
-            String jaasPath = ESSearch.class.getClassLoader().getResource("jaas.conf").getPath();
-
+            String userKeytab = ESSearch.class.getClassLoader().getResource("user.keytab").getPath();
+//            String jaasPath = ESSearch.class.getClassLoader().getResource("jaas.conf").getPath();
+//            System.setProperty("java.security.auth.login.config", jaasPath);
+//            System.setProperty("java.security.krb5.conf", krb5ConfFile);
             System.setProperty("java.security.krb5.conf", krb5ConfFile);
-            System.setProperty("java.security.auth.login.config", jaasPath);
+            //配置jaas文件进行认证，并配置到JVM系统参数中
+            LoginUtil.setJaasFile(properties.getProperty("userName"), userKeytab);
+
             System.setProperty("javax.security.auth.useSubjectCredsOnly", "false");
             System.setProperty("es.security.indication", "true");
             LOG.info("es.security.indication is  " + System.getProperty("es.security.indication"));
@@ -93,7 +129,7 @@ public class    ESSearch {
     }
 
     //************* 获取客户端，连接Elasticsearch集群 ************
-    public static  RestClient getRestClient() throws Exception {
+    public static RestClient getRestClient() throws Exception {
         List<HttpHost> hosts = new ArrayList<HttpHost>();
         String[] hostArray1 = esServerHost.split(",");
 
@@ -120,14 +156,14 @@ public class    ESSearch {
     }
 
     //*************创建指定分片数目的索引************
-    public static void createIndex(String indexName){
+    public static void createIndex(){
         Response rsp = null;
         Map<String, String> params = Collections.singletonMap("pretty", "true");
         String jsonString = "{" + "\"settings\":{" + "\"number_of_shards\":\"" + shardNum + "\","
                 + "\"number_of_replicas\":\"" + replicaNum + "\"" + "}}";
         HttpEntity entity = new NStringEntity(jsonString, ContentType.APPLICATION_JSON);
         try {
-            rsp = restClient.performRequest("PUT", "/" + indexName, params, entity);
+            rsp = restClient.performRequest("PUT", "/" + index, params, entity);
             if(HttpStatus.SC_OK == rsp.getStatusLine().getStatusCode()) {
                 LOG.info("CreateIndexWithShardNum successful.");
             }else {
@@ -140,7 +176,7 @@ public class    ESSearch {
     }
 
     //检查指定的索引是否存在于Elasticsearch集群中。
-    public static boolean exist(RestClient restClient,String index){
+    public static boolean exist(RestClient restClient){
         Map<String, String> params = Collections.singletonMap("pretty", "true");
         boolean isExist = true;
         Response rsp = null;
@@ -161,7 +197,7 @@ public class    ESSearch {
     }
 
 
-    public static void query(RestClient restClientTest,String index, String type,String queryContent) {
+    public static void query(RestClient restClientTest, String index, String type, String queryContent) {
         Response rsp = null;
         String jsonString = "{"+"\"query\":{"+
                 "\"match\":{"+
@@ -186,10 +222,54 @@ public class    ESSearch {
         }
     }
 
+    public static List<String> queryId(RestClient restClientTest, String index, String type, String queryContent) {
+        List<String> esList =new ArrayList<String>();
+        Response rsp = null;
+        String jsonString = "{"+"\"query\":{"+
+                "\"match\":{"+
+                "\"name\":\""+queryContent+"\""
+                +"}"
+                +"}"
+                +"}";
+
+        Map<String, String> params = Collections.singletonMap("pretty", "true");
+        HttpEntity entity = new NStringEntity(jsonString, ContentType.APPLICATION_JSON);
+        try {
+            rsp = restClientTest.performRequest("GET", "/" + index+ "/" + type+ "/_search" , params, entity);
+            if(HttpStatus.SC_OK == rsp.getStatusLine().getStatusCode()) {
+                LOG.info("QueryData successful.");
+            }
+            else {
+                LOG.error("QueryData failed.");
+            }
+            //得到查询出的结果
+            String esResult = EntityUtils.toString(rsp.getEntity());
+            LOG.info("QueryData response entity is : " + esResult);
+
+            //进行json串的解析得到全部的esid
+            JSONObject jsonObj = JSON.parseObject(esResult);
+            String hitsStr = jsonObj.getString("hits");
+            JSONObject hitsObj = JSON.parseObject(hitsStr);
+
+            //得到hits json数组
+            JSONArray hitsArr = hitsObj.getJSONArray("hits");
+
+            //构造esList
+            esList = new ArrayList<String>();
+            for (Object obj : hitsArr) {
+                JSONObject esObj = (JSONObject) obj;
+                esList.add(esObj.getString("_id"));
+            }
+        }catch (Exception e) {
+            LOG.error("QueryData failed, exception occurred.",e);
+        }
+        return esList;
+    }
+
 
     //*************添加索引内容************
     //添加索引(姓名,地址,时间)
-    public static void putData(RestClient restClientTest ,String id ,String name, String address, String date) {
+    public static void putData(RestClient restClientTest , String id , String name, String address, String date) {
         StringBuffer buffer = new StringBuffer();
         StringEntity entity2 = null;
         Gson gson = new Gson();
@@ -208,7 +288,7 @@ public class    ESSearch {
         Response rsp = null;
         try {
             rsp = restClientTest.performRequest("POST", "/" + index + "/" + type +"/" + id , params, entity2);
-            if(HttpStatus.SC_OK == rsp.getStatusLine().getStatusCode()||HttpStatus.SC_CREATED == rsp.getStatusLine().getStatusCode()) {
+            if(HttpStatus.SC_OK == rsp.getStatusLine().getStatusCode()|| HttpStatus.SC_CREATED == rsp.getStatusLine().getStatusCode()) {
                 LOG.info("PutData successful."+buffer.toString());
             }else {
                 LOG.error("PutData failed.");

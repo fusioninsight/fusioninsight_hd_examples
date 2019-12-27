@@ -10,20 +10,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.huawei.jredis.client.KerberosUtil;
 import org.apache.log4j.Logger;
 
-import com.huawei.medis.BatchException;
 import com.huawei.medis.ClusterBatch;
 import com.huawei.redis.Const;
 import com.huawei.redis.LoginUtil;
 
-import redis.clients.jedis.HostAndPort;
-import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.*;
+import redis.clients.jedis.params.geo.GeoRadiusParam;
 
 public class RedisTest {
     private static final Logger LOGGER = Logger.getLogger(RedisTest.class);
     private JedisCluster client;
     private ClusterBatch pipeline;
+    private static String principal;
 
     public RedisTest() {
         Set<HostAndPort> hosts = new HashSet<HostAndPort>();
@@ -45,6 +46,44 @@ public class RedisTest {
             client.close();
         }
     }
+
+    public void testGeo() {
+        Map<String,GeoCoordinate> locationMap = new HashMap<String, GeoCoordinate>();
+        locationMap.put("test1",new GeoCoordinate(10,30));
+        locationMap.put("test2",new GeoCoordinate(11,30));
+        locationMap.put("test3",new GeoCoordinate(11,31));
+        locationMap.put("test4",new GeoCoordinate(12,31));
+        locationMap.put("test5",new GeoCoordinate(13,35));
+
+        client.geoadd("location",locationMap);
+
+        double dis = client.geodist("location","test1","test2", GeoUnit.KM);
+        LOGGER.info("The distance between test1 and test2 is " + dis + " KM.");
+
+        List<GeoCoordinate> geoCoordinateList = client.geopos("location","test1","test2");
+        LOGGER.info("Geo location info is " + geoCoordinateList.toString());
+
+        List<String> hashInfo = client.geohash("location" , "test1" , "test2");
+        LOGGER.info("geohash info of test1 and test2 is " + hashInfo.toString());
+
+
+        List<GeoRadiusResponse> memberInfoByNumber = client.georadius("location" , 11 , 31 ,500 ,
+                GeoUnit.KM, GeoRadiusParam.geoRadiusParam().withDist());
+
+        LOGGER.info("Get location info by longitude and latitude : ");
+        for(GeoRadiusResponse geoRadiusResponse : memberInfoByNumber){
+            LOGGER.info(geoRadiusResponse.getMemberByString() + " : " + geoRadiusResponse.getDistance());
+        }
+
+        List<GeoRadiusResponse> memberInfoByLocation = client.georadiusByMember("location" , "test3" , 500 ,
+                GeoUnit.KM, GeoRadiusParam.geoRadiusParam().sortAscending().withDist().count(3));
+
+        LOGGER.info("Get location info by member : ");
+        for(GeoRadiusResponse geoRadiusResponse : memberInfoByLocation){
+            LOGGER.info(geoRadiusResponse.getMemberByString() + " : " + geoRadiusResponse.getDistance());
+        }
+    }
+
 
     public void testString() {
         String key = "sid-user01";
@@ -71,6 +110,12 @@ public class RedisTest {
         client.append(key, " world");
         value = client.get(key);
         LOGGER.info("After append, value: " + value);
+
+        client.del(key);
+
+        client.set(key,"A0BC9869FBC92933255A37A1D21167B2","EX",1000);
+        client.touch(key);
+        LOGGER.info("User " + key + ", session id: " + client.get(key));
 
         client.del(key);
     }
@@ -108,6 +153,9 @@ public class RedisTest {
         client.hset(key, "gender", "male");
         client.hset(key, "age", "35");
         client.hset(key, "salary", "1000000");
+
+
+        LOGGER.info("length of 1000000 is " + client.hstrlen(key, "salary"));
 
         // like Map.get()
         String id = client.hget(key, "id");
@@ -244,13 +292,26 @@ public class RedisTest {
         client.del(key);
     }
 
-    public void testPipeline() {
-        // Lazy load
-        if (pipeline == null) {
-            pipeline = client.getPipeline();
+    public void testSerialization(){
+        client.set("key1", "value1");
+        byte[] dump = client.dump("key1");
+        client.del("key1");
+
+        client.restore("key1",1000, dump);
+        if(null != client.get("key1")){
+            LOGGER.info("Byte conversion can be done by dump and restore");
         }
 
+        client.del("key1");
+    }
+
+    public void testPipeline() {
+        // Lazy load
         try {
+            if (null == pipeline) {
+                pipeline = client.getPipeline();
+            }
+
             pipeline.hset("website", "google", "www.google.cn");
             pipeline.hset("website", "baidu", "www.baidu.com");
             pipeline.hset("website", "sina", "www.sina.com");
@@ -273,8 +334,8 @@ public class RedisTest {
 
             client.del("website");
             client.del("hash");
-        } catch (BatchException e) {
-            LOGGER.error("BatchException", e);
+        } catch (Exception e) {
+            LOGGER.error("Fail to excute example cluster Pipeline ", e);
         }
     }
 
@@ -299,9 +360,9 @@ public class RedisTest {
         System.setProperty("redis.authentication.jaas", "false");
 
         if (System.getProperty("redis.authentication.jaas", "false").equals("true")) {
-            String principal = "redisuser@HADOOP.COM";
-            LoginUtil.setJaasFile(principal, getResource("user.keytab"));
-            LoginUtil.setKrb5Config(getResource("krb5.conf"));
+            LoginUtil.setKrb5Config(getResource("conf/krb5.conf"));
+            principal = "holy@" + KerberosUtil.getKrb5DomainRealm();
+            LoginUtil.setJaasFile(principal, getResource("conf/user.keytab"));
         }
     }
 
@@ -322,7 +383,8 @@ public class RedisTest {
         test.testSortedSet();
         test.testKey();
         test.testPipeline();
-
+        test.testGeo();
+        test.testSerialization();
         test.destory();
     }
 }

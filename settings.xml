@@ -1,20 +1,20 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
 
-	<localRepository>D:\apache-maven\localRepo</localRepository>
+	<localRepository>D:\04step2\00push_code0815_651\651_Repo</localRepository>
 	<servers>
 		<!-- 私服用户配置 -->
 		<server>
 			<id>personal</id>
-			<username>67b56e1fd43f41378b2f8789cac9839a_cd39b6d696a14560a4142365fadf077c</username>
-			<password>9oM-1Nb=3k</password>
+			<username>6ac7b63024ac4b1e94cc5ec253094f97_2996bd9e7c184665b5ac0fdcf9023a91</username>
+			<password>=p9CF5]j7-</password>
 		</server>
 		<server>
 			<id>snapshots</id>
-			<username>67b56e1fd43f41378b2f8789cac9839a_cd39b6d696a14560a4142365fadf077c</username>
-			<password>9oM-1Nb=3k</password>
+			<username>6ac7b63024ac4b1e94cc5ec253094f97_2996bd9e7c184665b5ac0fdcf9023a91</username>
+			<password>=p9CF5]j7-</password>
 		</server>
 	</servers>
 	<mirrors>
@@ -33,7 +33,7 @@
 					<id>personal</id>
 					<name>personal private nexus</name>
 
-					<url>https://devrepo-cn-south-1.devcloud.huaweicloud.com/01/nexus/content/repositories/67b56e1fd43f41378b2f8789cac9839a_1_0/</url>
+					<url>https://devrepo-cn-south-1.devcloud.huaweicloud.com/01/nexus/content/repositories/6ac7b63024ac4b1e94cc5ec253094f97_1_0/</url>
 					<releases>
 						<enabled>true</enabled>
 						<checksumPolicy>ignore</checksumPolicy>
@@ -45,7 +45,7 @@
 				<pluginRepository>
 					<id>personal</id>
 					<name>personal private nexus</name>
-					<url>https://devrepo-cn-south-1.devcloud.huaweicloud.com/01/nexus/content/repositories/67b56e1fd43f41378b2f8789cac9839a_1_0/</url>
+					<url>https://devrepo-cn-south-1.devcloud.huaweicloud.com/01/nexus/content/repositories/6ac7b63024ac4b1e94cc5ec253094f97_1_0/</url>
 					<releases>
 						<enabled>true</enabled>
 						<checksumPolicy>ignore</checksumPolicy>
@@ -56,18 +56,18 @@
 		</profile>
 
 	</profiles>
-	<!--<proxies>
+	<proxies>
 		<proxy>
 			<id>optional</id>
 			<active>true</active>
 			<protocol>http</protocol>
-			<username>账号</username>
+			<username>账户</username>
 			<password>密码</password>
 			<host>proxy.huawei.com</host>
 			<port>8080</port>
 			<nonProxyHosts>local.host|127.0.0.1|*.huawei.com|100.126.29.18|100.112.77.54</nonProxyHosts>
 		</proxy>
-	</proxies>-->
+	</proxies>
 	<activeProfiles>
 		<activeProfile>turmeric</activeProfile>
 	</activeProfiles>

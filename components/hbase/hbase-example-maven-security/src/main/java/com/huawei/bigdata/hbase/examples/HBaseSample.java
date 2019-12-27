@@ -813,16 +813,17 @@ public class HBaseSample
             // Instantiate a Get object.
             Scan scan = new Scan();
             scan.addColumn(Bytes.toBytes("info"), Bytes.toBytes("name"));
+            scan.addColumn(Bytes.toBytes("info"), Bytes.toBytes("age"));
 
             // Instantiate a FilterList object in which filters have "and"
             // relationship with each other.
             FilterList list = new FilterList(Operator.MUST_PASS_ALL);
             // Obtain data with age of greater than or equal to 20.
             list.addFilter(new SingleColumnValueFilter(Bytes.toBytes("info"), Bytes.toBytes("age"),
-                    CompareOp.GREATER_OR_EQUAL, Bytes.toBytes(new Long(20))));
+                    CompareOp.GREATER_OR_EQUAL, Bytes.toBytes("20")));
             // Obtain data with age of less than or equal to 29.
             list.addFilter(new SingleColumnValueFilter(Bytes.toBytes("info"), Bytes.toBytes("age"),
-                    CompareOp.LESS_OR_EQUAL, Bytes.toBytes(new Long(29))));
+                    CompareOp.LESS_OR_EQUAL, Bytes.toBytes("29")));
 
             scan.setFilter(list);
 

@@ -1,0 +1,1 @@
+./testjar/lib/FICASClientTool.jar  是华为已经封装好的。想要更灵活使用，建议加载LoginFI.rar工程,使用方式是一样的。

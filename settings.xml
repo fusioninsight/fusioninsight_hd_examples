@@ -21,7 +21,7 @@
 		<mirror>
 			<id>apache-mirror</id>
 			<mirrorOf>central</mirrorOf>
-			<url>http://repo.maven.apache.org/maven2/</url>
+			<url>https://repo.maven.apache.org/maven2/</url>
 		</mirror>
 	</mirrors>
 
@@ -45,7 +45,7 @@
 				<pluginRepository>
 					<id>personal</id>
 					<name>personal private nexus</name>
-					<url>https://devrepo-cn-south-1.devcloud.huaweicloud.com/01/nexus/content/repositories/67b56e1fd43f41378b2f8789cac9839a_1_0/</url>
+					<url>https://devrepo-cn-south-1.devcloud.huaweicloud.com/01/nexus/content/repositories/67b56e1fd43f41378b2f8789cac9839a_2_0/</url>
 					<releases>
 						<enabled>true</enabled>
 						<checksumPolicy>ignore</checksumPolicy>

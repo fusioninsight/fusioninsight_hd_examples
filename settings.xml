@@ -24,7 +24,7 @@
 		<mirror>
 			<id>z_mirrors</id>
 			<mirrorOf>*,!releases,!snapshots</mirrorOf>
-			<url>https://repo.huaweucloud.com/repository/maven/</url>
+			<url>https://repo.huaweicloud.com/repository/maven/</url>
 		</mirror>
 	</mirrors>
 
@@ -38,10 +38,12 @@
 					<releases>
 						<enabled>true</enabled>
 					</releases>
+					<snapshots>
 					<enabled>false</enabled>
+					</snapshots>
 				</repository>
 		<repository>
-		<id>smapshots</id>
+		<id>snapshots</id>
 		<url>https://devrepo-cn-south-1.devcloud.huaweicloud.com/01/nexus/content/repositories/6ac7b63024ac4b1e94cc5ec253094f97_2_0/</url>
 					<releases>
 						<enabled>false</enabled>

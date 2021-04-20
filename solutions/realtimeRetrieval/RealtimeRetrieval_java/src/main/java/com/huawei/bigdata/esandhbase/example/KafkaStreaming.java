@@ -2,48 +2,50 @@ package com.huawei.bigdata.esandhbase.example;
 
 import com.huawei.bigdata.security.LoginUtil;
 import com.huawei.bigdata.security.LoginUtilForKafka;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Admin;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
-import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.hadoop.hbase.client.*;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
-import org.apache.spark.streaming.kafka010.ConsumerStrategies;
-import org.apache.spark.streaming.kafka010.ConsumerStrategy;
-import org.apache.spark.streaming.kafka010.KafkaUtils;
-import org.apache.spark.streaming.kafka010.LocationStrategies;
-import org.apache.spark.streaming.kafka010.LocationStrategy;
+import org.apache.spark.streaming.kafka010.*;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.*;
+
+import com.huawei.bigdata.security.LoginUtil;
+
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 /*
  * 执行producer之前，先参考shell/createTopic.sh创建topic，并配置权限。多个producer可以向一个topic写入。
@@ -55,12 +57,10 @@ public class KafkaStreaming {
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(KafkaStreaming.class);
+
     private static Properties properties = new Properties();
 
     public static void main(String[] args) throws Exception {
-        //加载consumer 配置 文件信息
-        properties.load(new FileInputStream(KafkaStreaming.class.getClassLoader().getResource("consumer.properties").getPath()));
-
         Configuration conf = HBaseConfiguration.create();
         //加载HDFS/HBase服务端配置，用于客户端与服务端对接
         conf.addResource(new Path(KafkaStreaming.class.getClassLoader().getResource("core-site.xml").getPath()));
@@ -69,13 +69,14 @@ public class KafkaStreaming {
         //安全模式需要，普通模式可以删除s
         String krb5Conf = KafkaStreaming.class.getClassLoader().getResource("krb5.conf").getPath();
         String keyTab = KafkaStreaming.class.getClassLoader().getResource("user.keytab").getPath();
-        LoginUtilForKafka.setJaasFile(properties.getProperty("userName"), keyTab);
+        LoginUtilForKafka.setJaasFile("fwc", keyTab);
         LoginUtilForKafka.setKrb5Config(krb5Conf);
         LoginUtilForKafka.setZookeeperServerPrincipal("zookeeper/hadoop.hadoop.com");
-        LoginUtil.login(properties.getProperty("userName"), keyTab, krb5Conf, conf);
+        LoginUtil.login("fwc", keyTab, krb5Conf, conf);
 
         //加载consumer 配置 文件信息
-        properties.load(new FileInputStream(KafkaStreaming.class.getClassLoader().getResource("consumer.properties").getPath()));
+        properties.load(
+            new FileInputStream(KafkaStreaming.class.getClassLoader().getResource("consumer.properties").getPath()));
         String brokers = properties.getProperty("bootstrap.servers");
         String topics = properties.getProperty("topic");
         String batchTime = properties.getProperty("batchTime");
@@ -112,32 +113,27 @@ public class KafkaStreaming {
         ConsumerStrategy consumerStrategy = ConsumerStrategies.Subscribe(topicSet, kafkaParams);
 
         //从Kafka接收数据并生成相应的DStream( DStream操作最终会转换成底层的RDD的操作)
-        JavaInputDStream<ConsumerRecord<String, String>> messages = KafkaUtils.createDirectStream(jsc, locationStrategy, consumerStrategy);
-
-        messages.foreachRDD(
-                        new VoidFunction<JavaRDD<ConsumerRecord<String, String>>>() {
-                            @Override
-                            public void call(JavaRDD<ConsumerRecord<String, String>> consumerRecordJavaRDD) throws Exception {
-                                //使用 foreachPartition 方法，每个分区并发工作
-                                consumerRecordJavaRDD.foreachPartition(
-                                        new VoidFunction<Iterator<ConsumerRecord<String, String>>>() {
-                                            @Override
-                                            public void call(Iterator<ConsumerRecord<String, String>> consumerRecordIterator) throws Exception {
-                                                hbaseAndESWrite(consumerRecordIterator);
-                                            }
-                                        }
-                                );
-                            }
-                        }
-        );
+        JavaInputDStream<ConsumerRecord<String, String>> messages = KafkaUtils.createDirectStream(jsc, locationStrategy,
+            consumerStrategy);
+        messages.foreachRDD(new VoidFunction<JavaRDD<ConsumerRecord<String, String>>>() {
+            @Override
+            public void call(JavaRDD<ConsumerRecord<String, String>> consumerRecordJavaRDD) throws Exception {
+                //使用 foreachPartition 方法，每个分区并发工作
+                consumerRecordJavaRDD.foreachPartition(new VoidFunction<Iterator<ConsumerRecord<String, String>>>() {
+                    @Override
+                    public void call(Iterator<ConsumerRecord<String, String>> consumerRecordIterator) throws Exception {
+                        hbaseAndESWrite(consumerRecordIterator);
+                    }
+                });
+            }
+        });
         // Spark Streaming系统启动
         jsc.start();
         jsc.awaitTermination();
     }
 
-    ;
-
-    private static void hbaseAndESWrite(Iterator<ConsumerRecord<String, String>> consumerRecordIterator) throws Exception {
+    private static void hbaseAndESWrite(Iterator<ConsumerRecord<String, String>> consumerRecordIterator)
+        throws Exception {
         Configuration conf = HBaseConfiguration.create();
         TableName tableName = null;
         Connection conn = null;
@@ -147,9 +143,10 @@ public class KafkaStreaming {
 
         ESSearch.init();
         restClient = ESSearch.getRestClient();
+        String indexName = "testindex";
         //判断要创建的索引名称是否已经存在,不存在则创建
-        if (!ESSearch.exist(restClient)) {
-            ESSearch.createIndex();
+        if (!ESSearch.exist(restClient, indexName)) {
+            ESSearch.createIndex(indexName);
         }
 
         try {
@@ -169,15 +166,9 @@ public class KafkaStreaming {
             if (!admin.tableExists(tableName)) {
                 LOG.info("Creating table...");
                 System.out.println("Creating table...");
-                HTableDescriptor htd = new HTableDescriptor(tableName);
-                HColumnDescriptor hcd1 = new HColumnDescriptor("Basic");
-                HColumnDescriptor hcd2 = new HColumnDescriptor("OtherInfo");
-                hcd1.setCompressionType(Compression.Algorithm.SNAPPY);
-                hcd1.setDataBlockEncoding(DataBlockEncoding.FAST_DIFF);
-                hcd2.setCompressionType(Compression.Algorithm.SNAPPY);
-                hcd2.setDataBlockEncoding(DataBlockEncoding.FAST_DIFF);
-                htd.addFamily(hcd1);
-                htd.addFamily(hcd2);
+                ColumnFamilyDescriptor columnFamilyDescriptor1 = ColumnFamilyDescriptorBuilder.newBuilder("Basic".getBytes()).setCompressionType(Compression.Algorithm.SNAPPY).setDataBlockEncoding(DataBlockEncoding.DIFF).build();
+                ColumnFamilyDescriptor columnFamilyDescriptor2 = ColumnFamilyDescriptorBuilder.newBuilder("OtherInfo".getBytes()).setCompressionType(Compression.Algorithm.SNAPPY).setDataBlockEncoding(DataBlockEncoding.FAST_DIFF).build();
+                TableDescriptor htd = TableDescriptorBuilder.newBuilder(tableName).setColumnFamily(columnFamilyDescriptor1).setColumnFamily(columnFamilyDescriptor2).build();
                 // 指定起止RowKey和region个数；此时的起始RowKey为第一个region的endKey，结束key为最后一个region的startKey。
                 admin.createTable(htd, Bytes.toBytes(100000), Bytes.toBytes(400000), 10);
             } else {
@@ -185,9 +176,9 @@ public class KafkaStreaming {
                 System.out.println("table already exists");
             }
         } catch (IOException e) {
+            LOG.error("create table {} failed.", tableName);
             e.printStackTrace();
         }
-
 
         try {
             List<Put> putList = new ArrayList<Put>();
@@ -209,14 +200,17 @@ public class KafkaStreaming {
                     //将数据添加至hbase库
                     put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("hotelAddr"), Bytes.toBytes(elements[4]));
                     put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("checkInTime"), Bytes.toBytes(elements[5]));
-                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("checkOutTime"), Bytes.toBytes(elements[6]));
-                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("acquaintance"), Bytes.toBytes(elements[7]));
+                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("checkOutTime"),
+                        Bytes.toBytes(elements[6]));
+                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("acquaintance"),
+                        Bytes.toBytes(elements[7]));
                 } else if (key.equals("internet")) {
                     //添加索引(姓名,地址,时间)
                     ESSearch.putData(restClient, elements[1], elements[0], elements[4], elements[5]);
                     //将数据添加至hbase库
                     put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("barAddr"), Bytes.toBytes(elements[4]));
-                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("internetDate"), Bytes.toBytes(elements[5]));
+                    put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("internetDate"),
+                        Bytes.toBytes(elements[5]));
                     put.addColumn(Bytes.toBytes("OtherInfo"), Bytes.toBytes("timeSpent"), Bytes.toBytes(elements[6]));
                 } else {
                     //添加索引(姓名,地址,时间)
@@ -228,10 +222,8 @@ public class KafkaStreaming {
                 }
                 putList.add(put);
             }
-            if (putList.size() > 2) {
+            if (putList.size() > 0) {
                 LOG.info("Write data to HBase.....");
-                table.put(putList);
-            } else {
                 table.put(putList);
             }
         } catch (IOException e) {
@@ -271,4 +263,3 @@ public class KafkaStreaming {
     }
 
 }
-

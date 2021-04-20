@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>HD</artifactId>
+        <groupId>com.huawei.bigdata</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <packaging>pom</packaging>
+    <groupId>com.huawei.bigdata</groupId>
+    <artifactId>solutions</artifactId>
+
+    <version>1.0-SNAPSHOT</version>
+    <modelVersion>4.0.0</modelVersion>
+
+    <modules>
+
+        <!-- gaussDB200 -->
+        <!--<module>gaussDB200</module>-->
+
+        <!-- interactiveQuery -->
+        <module>interactiveQuery/InteractiveQueryScalaElk</module>
+        <module>interactiveQuery/InteractiveQueryJavaSparkSQL</module>
+        <module>interactiveQuery/insteractiveHdfsElk</module>
+        <module>interactiveQuery/InteractiveQueryScalaHive</module>
+
+        <!-- offineProcessing -->
+        <module>offineProcessing/offineProcessingJava</module>
+        <module>offineProcessing/offineProcessingJavaMrAndHive</module>
+        <module>offineProcessing/offineProcessingScala</module>
+
+        <!-- realtimeProcessing -->
+        <module>realtimeProcessing/RealTimeProcessingJava</module>
+        <module>realtimeProcessing/RealTimeProcessingScala</module>
+
+        <!-- realtimeRetrieval -->
+        <module>realtimeRetrieval/RealtimeRetrieval_java</module>
+        <module>realtimeRetrieval/RealtimeRetrieval_scala</module>
+
+    </modules>
+
+
+
+
+</project>

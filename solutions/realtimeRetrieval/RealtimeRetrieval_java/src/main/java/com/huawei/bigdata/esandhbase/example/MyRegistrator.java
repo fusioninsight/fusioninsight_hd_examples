@@ -1,4 +1,3 @@
-
 package com.huawei.bigdata.esandhbase.example;
 
 import org.apache.spark.serializer.KryoRegistrator;
@@ -6,10 +5,8 @@ import org.apache.spark.serializer.KryoRegistrator;
 /**
  * Define serializer class.
  */
-public class MyRegistrator implements KryoRegistrator
-{
-    public void registerClasses(com.esotericsoftware.kryo.Kryo kryo)
-    {
+public class MyRegistrator implements KryoRegistrator {
+    public void registerClasses(com.esotericsoftware.kryo.Kryo kryo) {
         kryo.register(org.apache.hadoop.hbase.io.ImmutableBytesWritable.class);
         kryo.register(org.apache.hadoop.hbase.client.Result.class);
         kryo.register(scala.Tuple2[].class);

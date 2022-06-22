@@ -83,7 +83,7 @@
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>elasticsearch-rest-client</artifactId>
-            <version>6.7.1</version>
+            <version>6.8.15</version>
         </dependency>
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
